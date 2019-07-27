@@ -30,8 +30,8 @@ data={"id":0,
       "subtype":"update",
       "data":{"phone":"13750687010","name":"王凌超","nickname":"FatBallFish","email":"893721708@qq.com"}}
 token = "473685e97add3b81237517dac69f5a70"
-# response = requests.post(url="https://www.lcworkroom.cn/zhiyuanapp/api/user/login",data=json.dumps(data),headers=headers)
-response = requests.post(url="http://127.0.0.1:8888/user/info?token={}".format(token),data=json.dumps(data),headers=headers)
+response = requests.post(url="https://dmt.lcworkroom.cn/api/user/info?token={}".format(token),data=json.dumps(data),headers=headers)
+# response = requests.post(url="http://127.0.0.1:8888/user/info?token={}".format(token),data=json.dumps(data),headers=headers)
 
 
 

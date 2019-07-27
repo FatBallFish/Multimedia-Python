@@ -120,6 +120,10 @@ class MyThread (threading.Thread):
             # lock.release()
 
 
+@app.route("/ping")
+def ping():
+    return "<h1>Pong</h1>"
+
 @app.route("/user/login",methods=["POST"])
 def login():
     data = request.json
