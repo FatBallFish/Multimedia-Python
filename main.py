@@ -12,7 +12,6 @@ import MD5
 import threading
 
 app = Flask(__name__)
-timer = threading.Timer
 
 LOG_FORMAT = "[%(asctime)-15s] - [%(name)10s]\t- [%(levelname)s]\t- [%(funcName)-20s:%(lineno)3s]\t- [%(message)s]"
 DATA_FORMAT = "%Y.%m.%d %H:%M:%S %p "
@@ -63,13 +62,11 @@ def Initialize(argv:list):
         sys.exit()
     sections = cf.sections()
     for section in sections:
-        if section in ["Log","Redis","SmsCaptcha"]:
-            break
-    else:
-        ##log_main.error("Config file missing some necessary sections")
-        print("Config file missing some necessary sections")
-        ##log_main.info("Program Ended")
-        sys.exit()
+        if section not in ["Redis","SmsCaptcha","Main","COS","MYSQL"]:
+            ##log_main.error("Config file missing some necessary sections")
+            print("Config file missing some necessary sections")
+            ##log_main.info("Program Ended")
+            sys.exit()
 
     # 读main配置
     # TODO CONFIG

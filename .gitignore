@@ -3,3 +3,6 @@ __pycache__/
 venv/
 my.log
 temp/
+webhook.log
+webhook-config.ini
+webhook.py

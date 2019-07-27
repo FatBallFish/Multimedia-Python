@@ -38,9 +38,3 @@ response = requests.post(url="http://127.0.0.1:8888/user/info?token={}".format(t
 
 
 print(response.text)
-# data_json = response.json()
-# data = data_json["data"]
-# img_b64 = data["imgdata"]
-# img_data = base64.b64decode(img_b64)
-# with open("./captcha/[%s].png" % data["code"],"wb") as f:
-#     f.write(img_data)
