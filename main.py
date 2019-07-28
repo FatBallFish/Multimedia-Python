@@ -151,7 +151,7 @@ def login():
         if data["subtype"] == "pass":
             data = data["data"]
             for key in data.keys():
-                if key not in ["phone","pass"]:
+                if key not in ["phone","pass","enduring"]:
                     # status -3 json的value错误。
                     return json.dumps({"id": id, "status": -3, "message": "Error data key", "data": {}})
             phone = data["phone"]
@@ -244,7 +244,7 @@ def userinfo():
 
         if token == None:
             # status -100 Missing necessary args api地址中缺少token参数
-            return json.dumps({"id": id, "status": -100, "message": "Missing necessary args", "data": {}})
+            return json.dumps({"id": -1, "status": -100, "message": "Missing necessary args", "data": {}})
         # print("token:",token)
         json_dict = dict(MySQL.GetUserInfo(token))
         return json.dumps(json_dict)
