@@ -157,8 +157,16 @@ def login():
             phone = data["phone"]
             password = data["pass"]
             # todo check salt
+            if "enduring" in data.keys():
+                enduring = data["enduring"]
+                if not isinstance(enduring,int):
+                    enduring = 0
+                if enduring != 0:
+                    enduring = 1
+            else:
+                enduring = 0
             # print(password)
-            status,result = MySQL.Login(phone,password)
+            status,result = MySQL.Login(phone,password,enduring=enduring)
             if status == 0:
                 # status 0 登录成功，获取用户信息
                 return json.dumps({"id": id, "status": 0, "message": "Successful", "data": {"token":result}})
@@ -207,15 +215,15 @@ def register():
             # todo check salt
             result = Redis.SafeCheck(hash)
             if result == False:
-                # status -4 hash不存在
-                return json.dumps({"id": id, "status": -4, "message": "Error hash", "data": {}})
+                # status 400 hash不存在
+                return json.dumps({"id": id, "status": 400, "message": "Error hash", "data": {}})
 
             status,result = MySQL.Register(phone,password)
             if status == 0:
                 # status 0 注册成功
                 return json.dumps({"id": id, "status": 0, "message": "Successful", "data": {}})
             else:
-                # status -100,-200,100,101 Mysql处理结果
+                # status -100,-200,100,101,102 Mysql处理结果
                 return json.dumps({"id": id, "status": status, "message": result, "data": {}})
         else:
             # status -2 json的value错误。
@@ -235,8 +243,8 @@ def userinfo():
             print(e)
 
         if token == None:
-            # status -1000 Missing necessary args api地址中缺少token参数
-            return json.dumps({"id": id, "status": -1000, "message": "Missing necessary args", "data": {}})
+            # status -100 Missing necessary args api地址中缺少token参数
+            return json.dumps({"id": id, "status": -100, "message": "Missing necessary args", "data": {}})
         # print("token:",token)
         json_dict = dict(MySQL.GetUserInfo(token))
         return json.dumps(json_dict)
@@ -307,8 +315,8 @@ def doki():
         print(e)
 
     if token == None:
-        # status -1000 Missing necessary args api地址中缺少token参数
-        return json.dumps({"id": -1, "status": -1000, "message": "Missing necessary args", "data": {}})
+        # status -100 Missing necessary args api地址中缺少token参数
+        return json.dumps({"id": -1, "status": -100, "message": "Missing necessary args", "data": {}})
     # print("token:",token)
     json_dict = MySQL.Doki(token)
     return json.dumps(json_dict)
@@ -389,10 +397,10 @@ def captcha():
                     "data":{}
                 })
             elif result == False:
-                # status -1 验证码hash值不匹配(包括验证码过期)。
+                # status 100 验证码hash值不匹配(包括验证码过期)。
                 return json.dumps({
                     "id": id,
-                    "status": -1,
+                    "status": 100,
                     "message": "Error captcha hash",
                     "data": {}
                 })
@@ -418,8 +426,8 @@ def captcha():
             # hash = data["hash"]
             # result = Redis.SafeCheck(hash)
             # if result != 0:
-            #     # status -4 json的value错误。
-            #     return json.dumps({"id": id, "status": -4, "message": "Error Hash", "data": {}})
+            #     # status 400 Error Hash hash错误。
+            #     return json.dumps({"id": id, "status": 400, "message": "Error Hash", "data": {}})
             phone = str(data["phone"])
             code = random.randint(10000,99999)
             result = SmsCaptcha.SendCaptchaCode(phone,code,ext=str(id))

@@ -8,4 +8,4 @@ def md5(string,salt='bluezone'):
     res = md.hexdigest()
     return res
 if __name__ == "__main__":
-    print(md5("nDtg4"))
+    print(md5("nDtg4","D6srg"))

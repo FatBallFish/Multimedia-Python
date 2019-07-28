@@ -102,7 +102,7 @@ def Auto_del_token():
     #         print(e)
     #         log_mysql.error("Failed to execute sql:{}".format(sql))
 
-def Login(phone:str,password:str)->tuple:
+def Login(phone:str,password:str,enduring:int=0)->tuple:
     """
     Login API,return a tuple(status,result string)
     :param phone: username
@@ -122,8 +122,8 @@ def Login(phone:str,password:str)->tuple:
         print("Failed to execute sql:{}|{}".format(sql,e))
         log_mysql.error("Failed to execute sql:{}|{}".format(sql,e))
         Auto_KeepConnect()
-        # status -100 sql执行失败
-        return (-100,"Execute sql falied")
+        # status -200 sql执行失败
+        return (-200,"Failure to operate database")
 
     if num == 1:
         row = cur.fetchone()
@@ -131,10 +131,10 @@ def Login(phone:str,password:str)->tuple:
         salt = row[1]
         cur.close()
         if pass_db == MD5.md5(password,salt):
-            token = AddToken(phone)
+            token = AddToken(phone,enduring=enduring)
             if token == "":
-                # status -300 添加token失败
-                return (-300,"Add token falied")
+                # status 300 添加token失败
+                return (300,"Add token failed")
             # status 0 执行成功，返回token
             return (0,token)
         else:
@@ -144,8 +144,8 @@ def Login(phone:str,password:str)->tuple:
         # status 100 无记录
         return (100,"Incorrect user")
     else:
-        # status -200 记录数量有误
-        return (-200,"Invalid record number ")
+        # status 200 记录数量有误
+        return (200,"Invalid record number")
 
 def Register(phone:str,password:str)->tuple:
     """
@@ -166,10 +166,10 @@ def Register(phone:str,password:str)->tuple:
         print("Failed to execute sql:{}|{}".format(sql,e))
         log_mysql.error("Failed to execute sql:{}|{}".format(sql,e))
         Auto_KeepConnect()
-        # status -100 sql执行失败
-        return (-100,"Execute sql falied")
+        # status -200 sql执行失败
+        return (-200,"Failure to operate database")
     if num > 0:
-        # status -101 手机号已存在
+        # status 101 手机号已存在
         return (101,"Phone number existed")
     createdtime = time.strftime("%Y:%m:%d %H:%M:%S",time.localtime())
 
@@ -194,8 +194,8 @@ def Register(phone:str,password:str)->tuple:
         print("Failed to execute sql:{}|{}".format(sql,e))
         log_mysql.error("Failed to execute sql:{}|{}".format(sql,e))
         Auto_KeepConnect()
-        # status -100 sql执行失败
-        return (-100,"Execute sql falied")
+        # status -200 sql执行失败
+        return (-200,"Failure to operate database")
     if num == 1:
         ## 创建userinfo表
         sql = 'INSERT INTO usersinfo (phone,`level`) VALUES ("{}",1)'.format(phone)
@@ -210,32 +210,32 @@ def Register(phone:str,password:str)->tuple:
             print("Failed to execute sql:{}|{}".format(sql, e))
             log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
             Auto_KeepConnect()
-            # status -100 sql执行失败
-            return (-100, "Execute sql falied")
+            # status -200 sql执行失败
+            return (-200, "Failure to operate database")
         cur.close()
         if num2 == 1:
             # status 0 执行成功，返回token
             return (0, "Successful")
         elif num2 == 0:
-            # status 100 无记录
-            return (100, "Incorrect user information")
+            # status 102 创建用户信息失败
+            return (102, "Incorrect user information")
         else:
-            # status -200 记录数量有误
-            return (-200, "Invalid record number ")
+            # status 200 记录数量有误
+            return (200, "Invalid record number")
     elif num == 0:
         cur.close()
         # status 100 无记录
-        return (100,"Incorrect user information")
+        return (101,"Incorrect user data")
     else:
         cur.close()
-        # status -200 记录数量有误
-        return (-200,"Invalid record number ")
+        # status 200 记录数量有误
+        return (200,"Invalid record number ")
 
-def AddToken(phone:str)->str:
+def AddToken(phone:str,enduring:int=0)->str:
     """
     Add token in database
     :param phone: username
-    :return: result string,success return token,falied return void string.
+    :return: result string,success return token,failed return void string.
     """
     createdtime = time.strftime("%Y:%m:%d %H:%M:%S", time.localtime())
     time_now = int(time.time())
@@ -243,7 +243,7 @@ def AddToken(phone:str)->str:
     token = MD5.md5(phone+str(time_now),"dmt")
     cur = conn.cursor()
     sql = 'INSERT INTO tokens (token,phone,createdtime,expiration,counting,enduring)' \
-          'VALUES ("{}","{}","{}",{},{},{})'.format(token,phone,createdtime,time_expiration,1,0)
+          'VALUES ("{}","{}","{}",{},{},{})'.format(token,phone,createdtime,time_expiration,1,enduring)
     try:
         cur.execute(sql)
         conn.commit()
@@ -306,7 +306,7 @@ def AddToken(phone:str)->str:
 
 def RefreshToken(token:str)->bool:
     """
-    用户操作时刷新token过期时间
+    刷新token过期时间
     :param token:token值
     :return:返回处理结果，成功为True，否则False
     """
@@ -341,18 +341,18 @@ def Doki(token:str,id:int=-1)->dict:
         print("Failed to execute sql:{}|{}".format(sql, e))
         log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
         Auto_KeepConnect()  # 尝试一下当sql出错后自动重连
-        # status -100 Get Doki info failed sql语句错误
-        return {"id": id, "status": -100, "message": "Get Doki info failed", "data": {}}
+        # status -200 Get Doki info failed sql语句错误
+        return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
     if num == 0:
         # status 1 Token not existed Token不存在
         return {"id": id, "status": 1, "message": "Token not existed", "data": {}}
     elif num == 1:
         RefreshToken(token)
-        # status 0 Successfully Token存在
-        return {"id": id, "status": 0, "message": "Successfully", "data": {}}
+        # status 0 Successful Token存在
+        return {"id": id, "status": 0, "message": "Successful", "data": {}}
     else:
-        # status -404 Unkonwn token Error 同一Token大于2条
-        return {"id": id, "status": -404, "message": "Unkonwn token Error", "data": {}}
+        # status 200 Unkonwn token Error 同一Token大于2条
+        return {"id": id, "status": 200, "message": "Invalid token number", "data": {}}
 
 def Doki2(token:str)->tuple:
     """
@@ -370,7 +370,7 @@ def Doki2(token:str)->tuple:
         print("Failed to execute sql:{}|{}".format(sql, e))
         log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
         Auto_KeepConnect()  # 尝试一下当sql出错后自动重连
-        # status -100 Get Doki info failed sql语句错误
+        # status -200 Failure to operate database语句错误
         return (False,"")
 
     if num == 1:
@@ -421,8 +421,8 @@ def UpdataUserInfo(phone:str,info:dict,id:int=-1)->dict:
         print("Failed to execute sql:{}|{}".format(sql, e))
         log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
         Auto_KeepConnect()  # 尝试一下当sql出错后自动重连
-        # status -100 Get user info failed sql语句错误
-        return {"id": id, "status": -100, "message": "Get record failed", "data": {}}
+        # status -200 Execute sql failed sql语句错误
+        return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
     cur.close()
     # status 0 Successful 成功！
     return {"id": id, "status": 0, "message": "Successful", "data": {}}
@@ -448,8 +448,8 @@ def GetUserInfo(token:str,id:int=-1)->dict:
         print("Failed to execute sql:{}|{}".format(sql, e))
         log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
         Auto_KeepConnect()  # 尝试一下当sql出错后自动重连
-        # status -100 Get user info failed sql语句错误
-        return {"id": id, "status": -100, "message": "Get user info failed", "data":{}}
+        # status -200 Get user info failed sql语句错误
+        return {"id": id, "status": -200, "message": "Failure to operate database", "data":{}}
     if num == 0:
         cur.close()
         # status 1 user not existed phone不存在
@@ -465,12 +465,13 @@ def GetUserInfo(token:str,id:int=-1)->dict:
             "level":row[4],
         }
         cur.close()
-        # status 0 Successfully phone存在
-        return {"id": id, "status": 0, "message": "Successfully", "data":data}
+        # status 0 Successful phone存在
+        return {"id": id, "status": 0, "message": "Successful", "data":data}
     else:
         cur.close()
-        # status -404 Unkonwn user info Error 同一phone大于2条
-        return {"id": id, "status": -404, "message": "Unkonwn user info Error", "data": {}}
+        # status 200 Unkonwn user info Error 同一phone大于2条
+        return {"id": id, "status": 200, "message": "Unkonwn user info Error", "data": {}}
+    # todo invavild
 
 
 if __name__ == '__main__':
