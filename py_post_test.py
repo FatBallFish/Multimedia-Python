@@ -18,18 +18,18 @@ headers = {'content-type': "application/json"}
 # response = requests.post(url="http://127.0.0.1:8888/user/register",data=json.dumps(data),headers=headers)
 
 
-# # 登录
-# data={"id":0,"type":"login","subtype":"pass","data":{"phone":"13750687010","pass":"wlc570Q0","enduring":1}}
-# response = requests.post(url="https://dmt.lcworkroom.cn/api/user/login",data=json.dumps(data),headers=headers)
-# # response = requests.post(url="http://127.0.0.1:8888/user/login",data=json.dumps(data),headers=headers)
-# # print(response.text)
-# 更新信息
-data={"id":0,
-      "type":"info",
-      "subtype":"update",
-      "data":{"phone":"13750687010","name":"王凌超","nickname":"FatBallFish","email":"893721708@qq.com"}}
-token = "443d5e7fe77069fda1e7dbb85b5e194b"
-response = requests.post(url="https://dmt.lcworkroom.cn/api/user/info?token={}".format(token),data=json.dumps(data),headers=headers)
+# 登录
+data={"id":0,"type":"login","subtype":"pass","data":{"phone":"13750687010","pass":"wlc570Q0","enduring":1}}
+response = requests.post(url="https://dmt.lcworkroom.cn/api/user/login",data=json.dumps(data),headers=headers)
+# response = requests.post(url="http://127.0.0.1:8888/user/login",data=json.dumps(data),headers=headers)
+# print(response.text)
+# # 更新信息
+# data={"id":0,
+#       "type":"info",
+#       "subtype":"update",
+#       "data":{"phone":"13750687010","name":"王凌超","nickname":"FatBallFish","email":"893721708@qq.com"}}
+# token = "443d5e7fe77069fda1e7dbb85b5e194b"
+# response = requests.post(url="https://dmt.lcworkroom.cn/api/user/info?token={}".format(token),data=json.dumps(data),headers=headers)
 # response = requests.post(url="http://127.0.0.1:8888/user/info?token={}".format(token),data=json.dumps(data),headers=headers)
 
 
