@@ -5,5 +5,3 @@ my.log
 temp/
 config.ini
 webhook.log
-webhook-config.ini
-webhook.py
