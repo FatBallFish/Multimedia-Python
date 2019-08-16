@@ -19,8 +19,8 @@ headers = {'content-type': "application/json"}
 
 
 # 登录
-data={"id":0,"type":"login","subtype":"pass","data":{"phone":"13750687010","pass":"wlc570Q0","enduring":1}}
-response = requests.post(url="https://dmt.lcworkroom.cn/api/user/login",data=json.dumps(data),headers=headers)
+# data={"id":0,"type":"login","subtype":"pass","data":{"phone":"13750687010","pass":"wlc570Q0","enduring":0}}
+# response = requests.post(url="https://dmt.lcworkroom.cn/api/user/login",data=json.dumps(data),headers=headers)
 # response = requests.post(url="http://127.0.0.1:8888/user/login",data=json.dumps(data),headers=headers)
 # print(response.text)
 # # 更新信息
@@ -32,8 +32,30 @@ response = requests.post(url="https://dmt.lcworkroom.cn/api/user/login",data=jso
 # response = requests.post(url="https://dmt.lcworkroom.cn/api/user/info?token={}".format(token),data=json.dumps(data),headers=headers)
 # response = requests.post(url="http://127.0.0.1:8888/user/info?token={}".format(token),data=json.dumps(data),headers=headers)
 
+# # 增加文章
+# data={"id":0,
+#       "type":"article",
+#       "subtype":"add",
+#       "data":{"title":"测试文章","content":"这是一篇测试文章"}}
+# token = "99c9150238fa21051f558ceccad55b8a"
+# # response = requests.post(url="https://dmt.lcworkroom.cn/api/user/info?token={}".format(token),data=json.dumps(data),headers=headers)
+# response = requests.post(url="http://127.0.0.1:8765/article?token={}".format(token),data=json.dumps(data),headers=headers)
 
+# # 更新文章
+# data={"id":0,
+#       "type":"article",
+#       "subtype":"update",
+#       "data":{"article_id":1565920055,"content":"这是一篇测试文章,测试一下更新效果"}}
+# token = "99c9150238fa21051f558ceccad55b8a"
+# # response = requests.post(url="https://dmt.lcworkroom.cn/api/user/info?token={}".format(token),data=json.dumps(data),headers=headers)
+# response = requests.post(url="http://127.0.0.1:8765/article?token={}".format(token),data=json.dumps(data),headers=headers)
 
-
-
+# 删除文章
+data={"id":0,
+      "type":"article",
+      "subtype":"delete",
+      "data":{"article_id":1565920055}}
+token = "99c9150238fa21051f558ceccad55b8a"
+# response = requests.post(url="https://dmt.lcworkroom.cn/api/user/info?token={}".format(token),data=json.dumps(data),headers=headers)
+response = requests.post(url="http://127.0.0.1:8765/article?token={}".format(token),data=json.dumps(data),headers=headers)
 print(response.text)

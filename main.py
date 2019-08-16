@@ -291,9 +291,9 @@ def userinfo():
                 # 判断指定所需字段是否存在，若不存在返回status -1 json。
                 for key in data.keys():
                     if not key in ["phone","name", "nickname","email","level"]:
-                        # status -202 Missing necessary data key-value
+                        # status -3 Error data key data数据中必需key缺失
                         return json.dumps(
-                            {"id": id, "status": -202, "message": "Missing necessary data key-value", "data": {}})
+                            {"id": id, "status": -3, "message": "Error data key", "data": {}})
                 phone = data["phone"]
                 temp_info = {}
                 for key in data.keys():
@@ -303,7 +303,12 @@ def userinfo():
                 json_dict = MySQL.UpdataUserInfo(phone,temp_info,id=id)
 
                 return json.dumps(json_dict)
-
+            else:
+                # status -2 json的value错误。
+                return json.dumps({"id": id, "status": -2, "message": "Error JSON value", "data": {}})
+        else:
+            # status -2 json的value错误。
+            return json.dumps({"id": id, "status": -2, "message": "Error JSON value", "data": {}})
 
 @app.route("/user/doki",methods=["GET"])
 def doki():
@@ -345,9 +350,12 @@ def captcha():
             return json.dumps({"id":id,"status":-1,"message":"Error JSON key","data":{}})
 
     # 处理json
-    if data["type"] == "img":
-        if data["subtype"] == "generate":
-            data = data["data"]
+    type = data["type"]
+    subtype = data["subtype"]
+    data = data["data"]
+    if type == "img":
+        if subtype == "generate":
+            # data = data["data"]
             # code,addr = ImgCaptcha.CreatCode()
             code, b64_data = ImgCaptcha.CreatCode()
             code = code.lower()  # 将所有的验证码转成小写
@@ -380,8 +388,8 @@ def captcha():
                 "data": {"imgdata": b64_data, "rand": rand_str}
                 # 改动：将code字段删除
             })
-        elif data["subtype"] == "validate":
-            data = data["data"]
+        elif subtype == "validate":
+            # data = data["data"]
             for key in data.keys():
                 if key not in ["hash"]:
                     # status -3 json的value错误。
@@ -415,9 +423,9 @@ def captcha():
         else:
             # status -2 json的value错误。
             return json.dumps({"id": id, "status":-2, "message": "Error JSON value", "data": {}})
-    elif data["type"] == "sms":
-        if data["subtype"] == "generate":
-            data = data["data"]
+    elif type == "sms":
+        if subtype == "generate":
+            # data = data["data"]
             for key in data.keys():
                 # if key not in ["phone","hash"]:
                 if key not in ["phone"]:
@@ -467,7 +475,7 @@ def captcha():
                     "message": message,
                     "data": {}
                 })
-        elif data["subtype"] == "delete":
+        elif subtype == "delete":
             pass
         else:
             # status -2 json的value错误。
@@ -476,7 +484,78 @@ def captcha():
         # status -2 json的value错误。
         return json.dumps({"id": id, "status": -2, "message": "Error JSON value", "data": {}})
 
+@app.route("/article",methods=["POST"])
+def atricle():
+    try:
+        token = request.args["token"]
+        print("token:", token)
+    except Exception as e:
+        print("Missing necessary args")
+        log_main.error("Missing necessary agrs")
+        # status -100 缺少必要的参数
+        return json.dumps({"id": -1, "status": -100, "message": "Missing necessary args", "data": {}})
+    token_check_result, username = MySQL.Doki2(token)
+    if token_check_result == False:
+        # status -101 token不正确
+        return json.dumps({"id": -1, "status": -101, "message": "Error token", "data": {}})
+    # 验证身份完成，处理数据
+    data = request.json
+    print(data)
 
+    # 判断键值对是否存在
+    try:
+        keys = data.keys()
+    except Exception as e:
+        # status -1 json的key错误。此处id是因为没有进行读取，所以返回默认的-1。
+        return json.dumps({"id": -1, "status": -1, "message": "Error JSON key", "data": {}})
+    # 先获取json里id的值，若不存在，默认值为-1
+    if "id" in data.keys():
+        id = data["id"]
+    else:
+        id = -1
+
+    # 判断指定所需字段是否存在，若不存在返回status -1 json。
+    for key in ["type", "subtype", "data"]:
+        if not key in data.keys():
+            # status -1 json的key错误。
+            return json.dumps({"id": id, "status": -1, "message": "Error JSON key", "data": {}})
+    # 处理json
+    type = data["type"]
+    subtype = data["subtype"]
+    data = data["data"]
+    if type == "article":
+        if subtype == "add":
+            for key in data.keys():
+                if key not in ["title","content"]:
+                    # status -3 json的value错误。
+                    return json.dumps({"id": id, "status": -3, "message": "Error data key", "data": {}})
+            title = data["title"]
+            content = data["content"]
+            json_dict = MySQL.AddArticle(user_id=username,title=title,content=content,id=id)
+            return json.dumps(json_dict)
+        elif subtype == "update":
+            for key in data.keys():
+                if key not in ["article_id","content"]:
+                    # status -3 json的value错误。
+                    return json.dumps({"id": id, "status": -3, "message": "Error data key", "data": {}})
+            article_id = data["article_id"]
+            content = data["content"]
+            json_dict = MySQL.UpdateArticle(user_id=username,article_id=article_id,content=content,id=id)
+            return json.dumps(json_dict)
+        elif subtype == "delete":
+            for key in data.keys():
+                if key not in ["article_id"]:
+                    # status -3 json的value错误。
+                    return json.dumps({"id": id, "status": -3, "message": "Error data key", "data": {}})
+            article_id = data["article_id"]
+            json_dict = MySQL.DeleteArticle(user_id=username,article_id=article_id,id=id)
+            return json.dumps(json_dict)
+        else:
+            # status -2 json的value错误。
+            return json.dumps({"id": id, "status": -2, "message": "Error JSON value", "data": {}})
+    else:
+        # status -2 json的value错误。
+        return json.dumps({"id": id, "status": -2, "message": "Error JSON value", "data": {}})
 
 if __name__ == '__main__':
     Initialize(sys.argv[1  :])
