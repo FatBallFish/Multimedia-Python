@@ -991,8 +991,12 @@
 - `keywords`用于`title`和`content`的并集查询，模糊匹配；
 - `article_id`、`title`、`content`可交集查询；
 - `order`中可用于排序的字段有`article_id`, `user_id`, `title`,`content`,`create_time`, `update_time`;
-- `order`排序方法有：升序`asc`、降序`desc`，多条件排序时用英文半角`,`分割
+- `order`排序方法有：升序`asc`、降序`desc`，大小写不区分。多条件排序时用英文半角`,`分割
 - 当实际记录数小于`num`的值时，只返回实际记录数量的记录
+
+> **URL例程**
+
+**https://dmt.lcworkroom.cn/api/get/article/list?token=99c9150238fa21051f558ceccad55b8a**
 
 > **Python端返回成功处理情况**
 
@@ -1308,6 +1312,112 @@
 | :----- | ---------------- | ------------------------------------ |
 | 100    | Error comment_id | 评论id错误，很有可能不存在           |
 | 101    | Error user_id    | 评论作者id与当前登录id不一致或无权限 |
+
+
+
+#### 获取评论列表
+
+> **API说明**
+
+此API用于获取游客论坛文章评论列表
+
+> **API类型**
+
+**请求类型：`GET`**
+
+> **API地址：**
+
+**https://dmt.lcworkroom.cn/api/get/comment/list**
+
+> **url 参数表**
+
+|    参数    | 可否为空 | 可否缺省 | 数据类型 | 字段长度 | 默认值           |               例子               |                        备注                         |
+| :--------: | :------: | :------: | :------: | :------: | ---------------- | :------------------------------: | :-------------------------------------------------: |
+|   token    |          |          |  string  |    32    |                  | debc454ea24827b67178482fd73f37c3 |                  由登录api返回获得                  |
+| article_id |          |          |   int    |    10    |                  |            1565926081            |                  文章id，精确匹配                   |
+| comment_id |    √     |    √     |  string  |    32    |                  | d757d9ea4c9c1860299a0341524a6a7d |                  评论id，精确匹配                   |
+| father_id  |    √     |    √     |  string  |    32    |                  | a301c03e1248eabf83785b5548d603ec |                 父评论id，精确匹配                  |
+|  content   |    √     |    √     |  string  |          |                  |         这是一条评论内容         |                 评论内容，模糊匹配                  |
+|   order    |    √     |    √     |  string  |          | update_time DESC |    title ASC,update_time DESC    | 排序规则，使用SQL语句，为空则默认以更新时间进行排序 |
+|   start    |    √     |    √     |   int    |          | 0                |                0                 |             记录索引开始，默认起始为 0              |
+|    num     |    √     |    √     |   int    |          | 50               |                10                |              返回记录数，默认返回50条               |
+
+> ## 注意
+
+- 只传递`token`和`article_id`参数则返回该文章的所有根评论，不含子评论。
+- `article_id`、`comment_id`、`father_id`、`content`可交集查询；
+- `order`中可用于排序的字段有`article_id`, `user_id`,`comment_id`、`father_id`、,`content`,`create_time`, `update_time`;
+- `order`排序方法有：升序`asc`、降序`desc`，大小写不区分。多条件排序时用英文半角`,`分割
+- 当实际记录数小于`num`的值时，只返回实际记录数量的记录
+
+> **URL例程**
+
+**https://dmt.lcworkroom.cn/api/get/comment/list?token=99c9150238fa21051f558ceccad55b8a&article_id=1565926081**
+
+> **Python端返回成功处理情况**
+
+```python
+{
+    "id": -1,
+    "status": 0, 
+    "message": "successful", 
+    "data": {
+        "num": 2, 
+        "list": [
+            {
+                "article_id": 1565926081, 
+                "comment_id": "76bd7b76fcd0b23f3d171f39b416d936", 
+                "father_id": "", 
+                "user_id": "13750687010", 
+                "content": "这是一条更新过的评论", 
+                "create_time": "2019-08-18 09:41:41", 
+                "update_time": "2019-08-18 11:08:43"
+            }, 
+            {
+                "article_id": 1565926081, 
+                "comment_id": "1aa6ddf68bea87f2305dd9fd5d3bb2c8", 
+                "father_id": "", 
+                "user_id": "13750687010", 
+                "content": "这是一条测试评论", 
+                "create_time": "2019-08-18 09:32:16", 
+                "update_time": "2019-08-18 09:32:16"
+            }
+        ]
+    }
+}
+```
+
+> **Python端返回失败处理情况**
+
+```python
+{
+    "id": -1, 
+    "status": -101, 
+    "message": "Error Token", 
+    "data": {}
+}
+```
+
+> **所用到的全局status**
+
+全局参数详情请看[全局Status表](#全局Status表)
+
+| status |
+| ------ |
+| -203   |
+| -200   |
+| -101   |
+| -100   |
+
+> **局部status表**
+
+| status | message          | 内容              |
+| :----- | ---------------- | ----------------- |
+| 100    | Error order      | 排序规则错误      |
+| 101    | Error num        | num值错误，不能<1 |
+| 102    | Error article_id | 错误的文章id      |
+
+
 
 ## **全局Status表**
 

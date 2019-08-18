@@ -717,6 +717,89 @@ def comment():
     else:
         # status -2 json的value错误。
         return json.dumps({"id": id, "status": -2, "message": "Error JSON value", "data": {}})
+
+@app.route("/get/comment/list",methods=["GET"])
+def get_comment():
+    try:
+        token = request.args.get("token")
+    except Exception as e:
+        # status -100 Missing necessary args api地址中缺少token参数
+        return json.dumps({"id": -1, "status": -100, "message": "Missing necessary args", "data": {}})
+    check_token_result,user_id = MySQL.Doki2(token)
+    if check_token_result == False:
+        # status -101 Error token token不正确
+        return json.dumps({"id": -1, "status": -101, "message": "Error token", "data": {}})
+    # 验证身份完成，处理数据
+    id = -1
+    arg_dict = dict(request.args)
+    article_id = 0
+    comment_id = ""
+    father_id = ""
+    content = ""
+    order = "update_time DESC"
+    start = 0
+    num = 50
+    for key in arg_dict.keys():
+        if key == "token":
+            continue
+        elif key == "article_id":
+            if isinstance(arg_dict["article_id"], int):
+                article_id = arg_dict["article"]
+            elif isinstance(arg_dict["article_id"], str):
+                if str(arg_dict["article_id"]).isdigit():
+                    article_id = int(arg_dict["article_id"])
+            else:
+                # status -203 Arg's value type error 键值对数据类型错误
+                return json.dumps({"id": -1, "status": -203, "message": "Arg's value type error", "data": {}})
+        elif key == "comment_id":
+            if isinstance(arg_dict["comment_id"], str):
+                comment_id = arg_dict["comment_id"]
+            else:
+                # status -203 Arg's value type error 键值对数据类型错误
+                return json.dumps({"id": -1, "status": -203, "message": "Arg's value type error", "data": {}})
+        elif key == "father_id":
+            if isinstance(arg_dict["father_id"], str):
+                father_id = arg_dict["father_id"]
+            else:
+                # status -203 Arg's value type error 键值对数据类型错误
+                return json.dumps({"id": -1, "status": -203, "message": "Arg's value type error", "data": {}})
+        elif key == "content":
+            if isinstance(arg_dict["content"], str):
+                content = arg_dict["content"]
+            else:
+                # status -203 Arg's value type error 键值对数据类型错误
+                return json.dumps({"id": -1, "status": -203, "message": "Arg's value type error", "data": {}})
+        elif key == "order":
+            if isinstance(arg_dict["order"], str):
+                order = arg_dict["order"]
+            else:
+                # status -203 Arg's value type error 键值对数据类型错误
+                return json.dumps({"id": -1, "status": -203, "message": "Arg's value type error", "data": {}})
+            order = str(arg_dict["order"])
+        elif key == "start":
+            if isinstance(arg_dict["start"], int):
+                start = arg_dict["start"]
+            elif isinstance(arg_dict["start"], str):
+                if str(arg_dict["start"]).isdigit():
+                    start = int(arg_dict["start"])
+            else:
+                # status -203 Arg's value type error 键值对数据类型错误
+                return json.dumps({"id": -1, "status": -203, "message": "Arg's value type error", "data": {}})
+        elif key == "num":
+            if isinstance(arg_dict["num"], int):
+                num = arg_dict["num"]
+            elif isinstance(arg_dict["num"], str):
+                if str(arg_dict["num"]).isdigit():
+                    num = int(arg_dict["num"])
+            else:
+                # status -203 Arg's value type error 键值对数据类型错误
+                return json.dumps({"id": -1, "status": -203, "message": "Arg's value type error", "data": {}})
+        else:
+            continue
+    json_dict = MySQL.GetCommentList(article_id=article_id, comment_id=comment_id, father_id=father_id, content=content,
+                                     order=order, start=start, num=num, id=id)
+    return json.dumps(json_dict)
+
 if __name__ == '__main__':
     Initialize(sys.argv[1  :])
     # thread_token = MyThread(1, "AutoRemoveExpireToken", 1)

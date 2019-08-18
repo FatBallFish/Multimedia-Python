@@ -668,7 +668,7 @@ article_id、title、content可交集查询；
                 if order_third.lower() not in ["article_id", "user_id", "title", "content", "create_time", "update_time",
                                                "asc", "desc"]:
                     # status 100 Error Order 排序规则错误
-                    return {"id": -1, "status": 100, "message": "Error Order", "data": {}}
+                    return {"id": -1, "status": 100, "message": "Error order", "data": {}}
         order = " ORDER BY " + order
     if num <= 0 :
         # status 101 Error num num值错误
@@ -897,5 +897,83 @@ Delete an comment
         # status -200 Execute sql failed sql语句错误
         return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
 
+def GetCommentList(article_id:int,comment_id:str,father_id:str,content:str,order:str,start:int,num:int,id:int=-1)->dict:
+    """
+获取某一篇文章下的评论列表,article_id为必传字段，father_id则选传
+所有条件将进行并集查询
+    :param article_id: 文章id，精确匹配
+    :param comment_id: 评论id，精确匹配，为空则表示不作为条件
+    :param father_id: 父评论id，精确匹配，为空则表示不作为条件
+    :param content: 评论内容，模糊匹配，为空则表示不作为条件
+    :param order: 排序规则，SQL语法
+    :param start: 起始索引，默认为0
+    :param num: 获取记录数，默认为50
+    :param id: 请求事件处理id
+    :return:
+    """
+    cur = conn.cursor()
+    if article_id == 0:
+        # status 102 Error article_id 错误的文章id
+        return {"id":id,"status":102,"message":"Error article_id","data":{}}
+    if order != "":
+        order_list_first = order.split(",")
+        for order_second in order_list_first:
+            order_list_second = order_second.split()
+            order_third: str
+            for order_third in order_list_second:
+                if order_third.lower() not in ["article_id", "user_id", "title", "content", "create_time", "update_time",
+                                               "asc", "desc"]:
+                    # status 100 Error Order 排序规则错误
+                    return {"id": -1, "status": 100, "message": "Error order", "data": {}}
+        order = " ORDER BY " + order
+    if num <= 0 :
+        # status 101 Error num num值错误
+        return {"id":id,"status":101,"message":"Error num","data":{}}
+    else:
+        condition = ""
+        if comment_id != "":
+            condition = condition + "comment_id = '{}' AND ".format(comment_id)
+        if father_id != "":
+            condition = condition + "father_id = '{}' AND ".format(father_id)
+        if content != "":
+            condition = condition + "content LIKE '%{}%' AND ".format(content)
+
+        if condition == "":
+            sql = "SELECT * FROM bbs_comment WHERE article_id = {} AND father_id = '' {}  LIMIT {} , {}".format(article_id,order,start,num)
+        else:
+            condition = condition.rpartition("AND ",)[0]
+            sql = "SELECT * FROM bbs_comment WHERE article_id = {} AND {} {} LIMIT {} , {}".format(article_id,condition,order,start,num)
+    print(sql)
+    try:
+        row_num = cur.execute(sql)
+        conn.commit()
+    except Exception as e:
+        # conn.rollback()
+        cur.close()
+        print("Failed to execute sql:{}|{}".format(sql, e))
+        log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
+        Auto_KeepConnect()
+        # status -200 Execute sql failed sql语句错误
+        return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
+
+    rows = cur.fetchall()
+    cur.close()
+    # row_num = len(rows)
+    if row_num == 0:
+        # status 0 successful
+        return {"id":id,"status":0,"message":"successful","data":{"num":0,"list":[]}}
+    comment_list = []
+    for row in rows:
+        comment_dict = {}
+        comment_dict["article_id"] = row[0]
+        comment_dict["comment_id"] = row[1]
+        comment_dict["father_id"] = row[2]
+        comment_dict["user_id"] = row[3]
+        comment_dict["content"] = row[4]
+        comment_dict["create_time"] = str(row[5])
+        comment_dict["update_time"] = str(row[6])
+        comment_list.append(comment_dict)
+    # status 0 successful
+    return {"id": id, "status": 0, "message": "successful", "data": {"num": row_num, "list": comment_list}}
 if __name__ == '__main__':
     Initialize()
