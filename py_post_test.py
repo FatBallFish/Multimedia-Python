@@ -32,14 +32,14 @@ headers = {'content-type': "application/json"}
 # response = requests.post(url="https://dmt.lcworkroom.cn/api/user/info?token={}".format(token),data=json.dumps(data),headers=headers)
 # response = requests.post(url="http://127.0.0.1:8888/user/info?token={}".format(token),data=json.dumps(data),headers=headers)
 
-# 增加文章
-data={"id":0,
-      "type":"article",
-      "subtype":"add",
-      "data":{"title":"测试文章","content":"这是一篇测试文章"}}
-token = "99c9150238fa21051f558ceccad55b8a"
-response = requests.post(url="https://dmt.lcworkroom.cn/api/article?token={}".format(token),data=json.dumps(data),headers=headers)
-# response = requests.post(url="http://127.0.0.1:8765/article?token={}".format(token),data=json.dumps(data),headers=headers)
+# # 增加文章
+# data={"id":0,
+#       "type":"article",
+#       "subtype":"add",
+#       "data":{"title":"测试文章","content":"这是一篇测试文章"}}
+# token = "99c9150238fa21051f558ceccad55b8a"
+# response = requests.post(url="https://dmt.lcworkroom.cn/api/article?token={}".format(token),data=json.dumps(data),headers=headers)
+# # response = requests.post(url="http://127.0.0.1:8765/article?token={}".format(token),data=json.dumps(data),headers=headers)
 
 # # 更新文章
 # data={"id":0,
@@ -58,4 +58,32 @@ response = requests.post(url="https://dmt.lcworkroom.cn/api/article?token={}".fo
 # token = "99c9150238fa21051f558ceccad55b8a"
 # # response = requests.post(url="https://dmt.lcworkroom.cn/api/article?token={}".format(token),data=json.dumps(data),headers=headers)
 # response = requests.post(url="http://127.0.0.1:8765/article?token={}".format(token),data=json.dumps(data),headers=headers)
+
+# # 增加评论
+# data={"id":0,
+#       "type":"comment",
+#       "subtype":"add",
+#       "data":{"article_id":1565926081,"content":"这是一条用API请求的子级评论","father_id":"76bd7b76fcd0b23f3d171f39b416d936"}}
+# token = "99c9150238fa21051f558ceccad55b8a"
+# # response = requests.post(url="https://dmt.lcworkroom.cn/api/comment?token={}".format(token),data=json.dumps(data),headers=headers)
+# response = requests.post(url="http://127.0.0.1:8765/comment?token={}".format(token),data=json.dumps(data),headers=headers)
+
+# # 更新评论
+# data={"id":0,
+#       "type":"comment",
+#       "subtype":"update",
+#       "data":{"comment_id":"d757d9ea4c9c1860299a0341524a6a7d","content":"这是一条用API更新的子级评论"}}
+# token = "99c9150238fa21051f558ceccad55b8a"
+# # response = requests.post(url="https://dmt.lcworkroom.cn/api/comment?token={}".format(token),data=json.dumps(data),headers=headers)
+# response = requests.post(url="http://127.0.0.1:8765/comment?token={}".format(token),data=json.dumps(data),headers=headers)
+
+# 删除文章
+data={"id":0,
+      "type":"comment",
+      "subtype":"delete",
+      "data":{"comment_id":"a301c03e1248eabf83785b5548d603ec"}}
+token = "99c9150238fa21051f558ceccad55b8a"
+# response = requests.post(url="https://dmt.lcworkroom.cn/api/comment?token={}".format(token),data=json.dumps(data),headers=headers)
+response = requests.post(url="http://127.0.0.1:8765/comment?token={}".format(token),data=json.dumps(data),headers=headers)
+
 print(response.text)

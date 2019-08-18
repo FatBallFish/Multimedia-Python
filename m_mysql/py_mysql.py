@@ -505,7 +505,7 @@ Add an article to bbs,return json dict ,include id,status,message,data
         print("Failed to execute sql:{}|{}".format(sql, e))
         log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
         Auto_KeepConnect()
-        # status -200 Execute sql failed sql语句错误
+        # status -200 Failure to operate database sql语句错误
         return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
     if num == 1:
         # status 0 成功处理数据
@@ -543,12 +543,12 @@ get an article's owner user_id.
 
 def CheckArticleIfExist(article_id:int)->bool:
     """
-check article id whether existed , if yes retuen True,not return False
+check article id whether existed , if yes return True,not return False
     :param article_id: article id
-    :return: if yes retuen True,not return False
+    :return: if yes return True,not return False
     """
     cur = conn.cursor()
-    sql = "SELECT SUM(article_id) AS num FROM bbs_article WHERE article_id = {}".format(article_id)
+    sql = "SELECT COUNT(article_id) AS num FROM bbs_article WHERE article_id = {}".format(article_id)
     try:
         cur.execute(sql)
         conn.commit()
@@ -568,7 +568,7 @@ check article id whether existed , if yes retuen True,not return False
 
 def UpdateArticle(user_id:str,article_id:int,content:str,id:int=-1)->dict:
     """
-Add an article to bbs,return json dict ,include id,status,message,data
+Update an article info,return json dict ,include id,status,message,data
     :param user_id: username,default phone number
     :param article_id: article's id,using find article which will be edited
     :param content: article's content
@@ -578,7 +578,7 @@ Add an article to bbs,return json dict ,include id,status,message,data
     cur = conn.cursor()
     check_if_exist = CheckArticleIfExist(article_id)
     if check_if_exist == False:
-        # status 100 article_id 文章id错误
+        # status 100 Error article_id 文章id错误
         return {"id": id, "status": 100, "message": "Error article_id", "data": ""}
     check_user_id = GetArticleOwner(article_id)
     if check_user_id != user_id:
@@ -602,7 +602,7 @@ Add an article to bbs,return json dict ,include id,status,message,data
     cur.close()
     if num == 1:
         # status 0 成功处理数据
-        return {"id": id, "status": 0, "message": "Successful", "data": {"article_id":article_id}}
+        return {"id": id, "status": 0, "message": "Successful", "data": {}}
     else:
         # status -200 Execute sql failed sql语句错误
         return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
@@ -723,6 +723,179 @@ article_id、title、content可交集查询；
         article_list.append(article_dict)
     # status 0 successful
     return {"id": id, "status": 0, "message": "successful", "data": {"num": row_num, "list": article_list}}
+
+def CheckCommentIfExist(comment_id:str)->bool:
+    """
+check comment id whether existed , if yes return True,not return False
+    :param comment_id: article id
+    :return: if yes return True,not return False
+    """
+    cur = conn.cursor()
+    sql = "SELECT COUNT(comment_id) AS num FROM bbs_comment WHERE comment_id = '{}'".format(comment_id)
+    try:
+        cur.execute(sql)
+        conn.commit()
+    except Exception as e:
+        # conn.rollback()
+        cur.close()
+        print("Failed to execute sql:{}|{}".format(sql, e))
+        log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
+        Auto_KeepConnect()
+        return False
+    num = cur.fetchone()[0]
+    cur.close()
+    if num == 1:
+        return True
+    else:
+        return False
+
+def AddComment(user_id:str,article_id:int,father_id:str,content:str,id:int=-1)->dict:
+    """
+Add a comment to an article,return article_id and comment_id
+    :param user_id: 用户id
+    :param article_id: 文章id
+    :param father_id: 父评论id
+    :param content: 评论内容
+    :param id: 请求事件id
+    :return: 返回json_dict
+    """
+    cur = conn.cursor()
+    if not CheckArticleIfExist(article_id):
+        # status 100 Error article_id 文章id错误
+        return {"id": id, "status": 100, "message": "Error article_id", "data": {}}
+    comment_id = MD5.md5(content,str(time.time()))
+    create_time = time.strftime("%Y:%m:%d %H:%M:%S",time.localtime())
+    update_time = create_time
+    if father_id != "":
+        if not CheckCommentIfExist(father_id):
+            # status 101 Error father_id 父评论id错误
+            return {"id":id,"status":101,"message":"Error father_id","data":{}}
+    sql = "INSERT INTO bbs_comment (article_id,comment_id,father_id,user_id,content,create_time,update_time) VALUES " \
+          "({},'{}','{}','{}','{}','{}','{}')".format(article_id,comment_id,father_id,user_id,content,create_time,update_time)
+    try:
+        num = cur.execute(sql)
+        conn.commit()
+        cur.close()
+    except Exception as e:
+        # conn.rollback()
+        cur.close()
+        print("Failed to execute sql:{}|{}".format(sql, e))
+        log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
+        Auto_KeepConnect()
+        # status -200 Execute sql failed sql语句错误
+        return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
+    if num == 1:
+        # status 0 成功处理数据
+        return {"id": id, "status": 0, "message": "Successful",
+                "data": {"article_id": article_id, "comment_id": comment_id}, "father_id": father_id}
+    else:
+        # status -200 Execute sql failed sql语句错误
+        return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
+
+def GetCommentOwner(comment_id:str)->str:
+    """
+get an comment's owner user_id.
+    :param comment_id: comment id
+    :return: user_id,failed or no such article_id return a void string
+    """
+    cur = conn.cursor()
+    sql = "SELECT user_id FROM bbs_comment WHERE comment_id = '{}'".format(comment_id)
+    try:
+        num = cur.execute(sql)
+        conn.commit()
+    except Exception as e:
+        # conn.rollback()
+        cur.close()
+        print("Failed to execute sql:{}|{}".format(sql, e))
+        log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
+        Auto_KeepConnect()
+        return ""
+    if num == 1:
+        user_id = cur.fetchone()[0]
+        print("user_id:",user_id)
+        cur.close()
+        return user_id
+    else:
+        cur.close()
+        return ""
+
+def UpdateComment(user_id:str,comment_id:str,content:str,id:int=-1)->dict:
+    """
+Update an comment info,return json dict ,include id,status,message,data
+    :param user_id: username,default phone number
+    :param comment_id: comment's id,using find comment which will be edited
+    :param content: comment's content
+    :param id: request event's id ,using on event handling
+    :return: json dict ,include id,status,message,data
+    """
+    cur = conn.cursor()
+    check_if_exist = CheckCommentIfExist(comment_id)
+    if not check_if_exist:
+        # status 100 Error comment_id 评论id错误
+        return {"id": id, "status": 100, "message": "Error comment_id", "data": ""}
+    check_user_id = GetCommentOwner(comment_id)
+    if check_user_id != user_id:
+        # status 101 Error user_id 用户id不匹配
+        return {"id": id, "status": 101, "message": "Error user_id", "data": ""}
+
+    update_time = time.strftime("%Y:%m:%d %H:%M:%S", time.localtime())
+    sql = "UPDATE bbs_comment SET content = '{}',update_time = '{}' " \
+          "WHERE comment_id = '{}' AND user_id = '{}'".format(content, update_time, comment_id, user_id)
+    try:
+        num = cur.execute(sql)
+        conn.commit()
+    except Exception as e:
+        # conn.rollback()
+        cur.close()
+        print("Failed to execute sql:{}|{}".format(sql, e))
+        log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
+        Auto_KeepConnect()
+        # status -200 Execute sql failed sql语句错误
+        return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
+    cur.close()
+    if num == 1:
+        # status 0 成功处理数据
+        return {"id": id, "status": 0, "message": "Successful", "data": {}}
+    else:
+        # status -200 Execute sql failed sql语句错误
+        return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
+
+def DeleteComment(user_id:str,comment_id:str,id:int=-1)->dict:
+    """
+Delete an comment
+    :param user_id: comment owner id
+    :param comment_id: comment id
+    :param id: request event id
+    :return: json dict,include id,status,message,data
+    """
+    cur = conn.cursor()
+    check_if_exist = CheckCommentIfExist(comment_id)
+    if check_if_exist == False:
+        # status 100 article_id 文章id错误
+        return {"id": id, "status": 100, "message": "Error article_id", "data": ""}
+    check_user_id = GetCommentOwner(comment_id)
+    if check_user_id != user_id:
+        # status 101 user_id不匹配
+        return {"id": id, "status": 101, "message": "Error user_id", "data": ""}
+    sql = "DELETE FROM bbs_comment WHERE comment_id = '{}' AND user_id = '{}'".format(comment_id, user_id)
+    try:
+        num = cur.execute(sql)
+        conn.commit()
+    except Exception as e:
+        # conn.rollback()
+        cur.close()
+        print("Failed to execute sql:{}|{}".format(sql, e))
+        log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
+        Auto_KeepConnect()
+        # status -200 Execute sql failed sql语句错误
+        return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
+    cur.close()
+    if num == 1:
+        # status 0 成功处理
+        return {"id": id, "status": 0, "message": "Successful", "data": {}}
+    else:
+        # status -200 Execute sql failed sql语句错误
+        return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
 
 if __name__ == '__main__':
     Initialize()
