@@ -68,13 +68,13 @@ headers = {'content-type': "application/json"}
 # # response = requests.post(url="https://dmt.lcworkroom.cn/api/comment?token={}".format(token),data=json.dumps(data),headers=headers)
 # response = requests.post(url="http://127.0.0.1:8765/comment?token={}".format(token),data=json.dumps(data),headers=headers)
 
-# 更新评论
-data={"id":0,
-      "type":"comment",
-      "subtype":"update",
-      "data":{"comment_id":"d757d9ea4c9c1860299a0341524a6a7d","content":"这是一条用API更新的子级评论2"}}
-token = "99c9150238fa21051f558ceccad55b8a"
-response = requests.post(url="https://dmt.lcworkroom.cn/api/comment?token={}".format(token),data=json.dumps(data),headers=headers)
+# # 更新评论
+# data={"id":0,
+#       "type":"comment",
+#       "subtype":"update",
+#       "data":{"comment_id":"d757d9ea4c9c1860299a0341524a6a7d","content":"这是一条用API更新的子级评论2"}}
+# token = "99c9150238fa21051f558ceccad55b8a"
+# response = requests.post(url="https://dmt.lcworkroom.cn/api/comment?token={}".format(token),data=json.dumps(data),headers=headers)
 # response = requests.post(url="http://127.0.0.1:8765/comment?token={}".format(token),data=json.dumps(data),headers=headers)
 
 # # 删除文章
@@ -86,4 +86,17 @@ response = requests.post(url="https://dmt.lcworkroom.cn/api/comment?token={}".fo
 # # response = requests.post(url="https://dmt.lcworkroom.cn/api/comment?token={}".format(token),data=json.dumps(data),headers=headers)
 # response = requests.post(url="http://127.0.0.1:8765/comment?token={}".format(token),data=json.dumps(data),headers=headers)
 
+# 上传头像
+with open("./temp/temp.jpg","rb") as f:
+      file_data = f.read()
+# print(file_data)
+img_base64 = str(base64.b64encode(file_data),"utf-8")
+print("base64:\n{}".format(img_base64))
+data={"id":0,
+      "type":"portrait",
+      "subtype":"upload",
+      "data":{"base64":"{}".format(img_base64)}}
+token = "99c9150238fa21051f558ceccad55b8a"
+# response = requests.post(url="https://dmt.lcworkroom.cn/api/comment?token={}".format(token),data=json.dumps(data),headers=headers)
+response = requests.post(url="http://127.0.0.1:8765/portrait?token={}".format(token),data=json.dumps(data),headers=headers)
 print(response.text)

@@ -45,7 +45,7 @@ def Initialize(cfg_path:str,main_path:str):
         log_mysql.error("Failed to connect MYSQL database")
         sys.exit()
     else:
-        print("Connect MYSQL database successfully!")
+        print("[MYSQL]Connect MYSQL database successfully!")
     global Main_filepath
     Main_filepath = main_path
     log_mysql.info("Module MySQL loaded")
@@ -391,17 +391,20 @@ def Auto_KeepConnect():
     :return:
     """
     global conn
-    DisconnectDB()
+    try:
+        DisconnectDB()
+    except:
+        pass
     try:
         conn = pymysql.connect(host=host, port=port, user=user,
                                passwd=password,
                                db=db, charset="utf8")
     except Exception as e:
-        print("Failed to connect MYSQL database")
+        print("[MYSQL]Failed to connect MYSQL database")
         log_mysql.error("Failed to keep connect MYSQL database")
         sys.exit()
     else:
-        print("Keep Connect MYSQL database successfully")
+        print("[MYSQL]Keep Connect MYSQL database successfully")
         log_mysql.info("Keep Connect MYSQL database successfully")
     timer = Timer(600, Auto_KeepConnect)
     timer.start()

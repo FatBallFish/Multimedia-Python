@@ -3,6 +3,7 @@ from m_mysql import py_mysql as MySQL
 from m_img import py_captcha_main as ImgCaptcha
 from m_sms import py_sms_main as SmsCaptcha
 from m_redis import py_redis as Redis
+from m_cos import  py_cos_main as Cos
 from configparser import ConfigParser
 import logging,os,time,random
 import sys,getopt
@@ -97,6 +98,7 @@ def Initialize(argv:list):
     # COS.Initialize(config_addr,Main_filepath)
     MySQL.Initialize(config_addr,Main_filepath)
     Redis.Initialize(config_addr,Main_filepath)
+    Cos.Initialize(config_addr,Main_filepath)
 
 class MyThread (threading.Thread):
     def __init__(self, threadID, name, counter):
@@ -309,6 +311,159 @@ def userinfo():
         else:
             # status -2 json的value错误。
             return json.dumps({"id": id, "status": -2, "message": "Error JSON value", "data": {}})
+
+@app.route("/portrait",methods=["POST"])
+def portrait():
+    try:
+        token = request.args["token"]
+        print("token:", token)
+    except Exception as e:
+        print("Missing necessary args")
+        log_main.error("Missing necessary agrs")
+        # status -100 缺少必要的参数
+        return json.dumps({"id": -1, "status": -100, "message": "Missing necessary args", "data": {}})
+    token_check_result, username = MySQL.Doki2(token)
+    if token_check_result == False:
+        # status -101 token不正确
+        return json.dumps({"id": -1, "status": -101, "message": "Error token", "data": {}})
+    # 验证身份完成，处理数据
+    data = request.json
+    # print(data)
+    try:
+        keys = data.keys()
+    except Exception as e:
+        # status -1 json的key错误。此处id是因为没有进行读取，所以返回默认的-1。
+        return json.dumps({"id": -1, "status": -1, "message": "Error JSON key", "data": {}})
+
+    if "id" in data.keys():
+        id = data["id"]
+    else:
+        id = -1
+
+    # 判断指定所需字段是否存在，若不存在返回status -1 json。
+    for key in ["type", "subtype", "data"]:
+        if not key in data.keys():
+            # status -1 json的key错误。
+            return json.dumps({"id": id, "status": -1, "message": "Error JSON key", "data": {}})
+    type = data["type"]
+    subtype = data["subtype"]
+    data = data["data"]
+    # 处理json
+    if type == "portrait":
+        if subtype == "upload":
+            for key in ["base64"]:
+                if key not in data.keys():
+                    # status -3 json的value错误。
+                    return json.dumps({"id": id, "status": -3, "message": "Error data key", "data": {}})
+            img_base64 = str(data["base64"])
+            base64_head_index = img_base64.find(";base64,")
+            if base64_head_index != -1:
+                print("进行了替换")
+                img_base64 = img_base64.partition(";base64,")[2]
+            # print("-------接收到数据-------\n", img_base64, "\n-------数据结构尾-------")
+            if "type" in data.keys():
+                img_type = data["type"]
+            img_file = base64.b64decode(img_base64)
+            try:
+                Cos.bytes_upload(img_file,"portrait/{}".format(username))
+                print("Add portrait for id:{}".format(username))
+                log_main.info("Add portrait for id:{}".format(username))
+            except Exception as e:
+                print("Failed to add portrait for id:{}".format(username))
+                print(e)
+                log_main.error("Failed to add portrait for id:{}".format(username))
+                log_main.error(e)
+
+
+            # with open("./{}_{}.{}".format(id,name,type),"wb") as f:
+            #     f.write(img_file)
+            #     print("{}_{}.{}".format(id,name,type),"写出成功！")
+            # status 0 成功。
+            return json.dumps({"id": id, "status": 0, "message": "Successful", "data": {
+                "url": "./api/get/portrait/{}".format(username)}})
+        else:
+            # status -2 json的value错误。
+            return json.dumps({"id": id, "status": -2, "message": "Error JSON value", "data": {}})
+    else:
+        # status -2 json的value错误。
+        return json.dumps({"id": id, "status": -2, "message": "Error JSON value", "data": {}})
+
+@app.route("/get/portrait/<user_id>")
+def get_portrait(user_id:str):
+    """
+获取头像API。GET请求。
+    :param user_id: 用户id
+    :return: 见开发文档
+    """
+    try:
+        realip = request.headers.get("X-Real-Ip")
+        # print("real ip:{},type:{}".format(realip,type(realip)))
+    except Exception as e:
+        print("[get_porttrait]{}".format(e))
+        log_main.error("[get_porttrait]{}".format(e))
+    try:
+        referer = str(request.headers.get("Referer"))
+        # print("referer:{},type:{}".format(referer, type(referer)))
+        index1 = referer.find("https://dmt.lcworkroom.cn/")
+        index2 = referer.find("http://localhost")
+        # todo 将allow url做成配置文件
+        if index1 == -1 and index2 == -1:
+            print("[get_porttrait]External Domain Name : {} Reference Pictures Prohibited".format(referer))
+            try:
+                path = os.path.join(Main_filepath, "data/image/ban.jpg")
+                with open(path, "rb") as f:
+                    data = f.read()
+                # data = COS.bytes_download("portrait/error")
+            except Exception as e:
+                print("[get_porttrait]Error:Can't load the ban img.")
+                log_main.error("Error:Can't load the ban img.")
+                data = b""
+            return data
+    except Exception as e:
+        print(e)
+        print("[get_porttrait]Error:Can't load the error img.")
+        log_main.error("Error:Can't load the error img.")
+        data = b""
+        return data
+
+    # print("The client ip is :",ip)
+    # srchead = "data:;base64,"
+    # import base64
+    # print("[get_porttrait]user_id:", user_id)
+    user_id = str(user_id)
+    if user_id.isdigit():
+        # print("Try to get portrait data:{}".format(id))
+        try:
+            data = Cos.bytes_download("portrait/{}".format(user_id))
+        except Exception as e:
+            msg = str(e)
+            code = msg.partition("<Code>")[2].partition("</Code>")[0]
+            message = msg.partition("<Message>")[2].partition("</Message>")[0]
+            # todo 以后要做一个判断机制
+
+            # print("[get_portrait]{}:{}".format(code,message))
+            try:
+                path = os.path.join(Main_filepath,"data/image/default.jpg")
+                with open(path,"rb") as f :
+                    data = f.read()
+                # data = COS.bytes_download("portrait/error")
+            except Exception as e:
+                print("[get_porttrait]Error:Can't load the default img.")
+                log_main.error("Error:Can't load the default img.")
+                data = b""
+        return data
+    else:
+        # print("[get_portrait]Error user_id")
+        try:
+            path = os.path.join(Main_filepath, "data/image/error.jpg")
+            with open(path,"rb") as f:
+                data = f.read()
+            # data = COS.bytes_download("portrait/error")
+        except Exception as e:
+            print("[get_porttrait]Error:Can't load the error img.")
+            log_main.error("Error:Can't load the error img.")
+            data = b""
+        return data
 
 @app.route("/user/doki",methods=["GET"])
 def doki():
@@ -565,6 +720,9 @@ def get_article():
         # status -100 Missing necessary args api地址中缺少token参数
         return json.dumps({"id": -1, "status": -100, "message": "Missing necessary args", "data": {}})
     check_token_result,user_id = MySQL.Doki2(token)
+    if token == None:
+        # status -100 Missing necessary args api地址中缺少token参数
+        return json.dumps({"id": -1, "status": -100, "message": "Missing necessary args", "data": {}})
     if check_token_result == False:
         # status -101 Error token token不正确
         return json.dumps({"id": -1, "status": -101, "message": "Error token", "data": {}})
@@ -723,6 +881,9 @@ def get_comment():
     try:
         token = request.args.get("token")
     except Exception as e:
+        # status -100 Missing necessary args api地址中缺少token参数
+        return json.dumps({"id": -1, "status": -100, "message": "Missing necessary args", "data": {}})
+    if token == None:
         # status -100 Missing necessary args api地址中缺少token参数
         return json.dumps({"id": -1, "status": -100, "message": "Missing necessary args", "data": {}})
     check_token_result,user_id = MySQL.Doki2(token)
