@@ -4,3 +4,4 @@ venv/
 my.log
 temp/
 config.ini
+data/local/

@@ -87,7 +87,7 @@ headers = {'content-type': "application/json"}
 # response = requests.post(url="http://127.0.0.1:8765/comment?token={}".format(token),data=json.dumps(data),headers=headers)
 
 # 上传头像
-with open("./temp/temp.jpg","rb") as f:
+with open("./temp/temp.png","rb") as f:
       file_data = f.read()
 # print(file_data)
 img_base64 = str(base64.b64encode(file_data),"utf-8")

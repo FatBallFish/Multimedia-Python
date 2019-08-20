@@ -73,11 +73,12 @@ def Initialize(argv:list):
     # TODO CONFIG
     global log_main
     try:
-        global log_outpath, webhost, webport, webdebug
+        global log_outpath, webhost, webport, webdebug,allowurl
         log_outpath = cf.get("Main", "logoutpath")
         webhost = cf.get("Main", "webhost")
         webport = cf.get("Main", "webport")
         intdebug = cf.get("Main", "webdebug")
+        allowurl = str(cf.get("COS","allowurl")).split(",")
         if intdebug == 1:
             webdebug = True
         else:
@@ -403,12 +404,15 @@ def get_portrait(user_id:str):
         log_main.error("[get_porttrait]{}".format(e))
     try:
         referer = str(request.headers.get("Referer"))
+        # print("referer:{}".format(referer))
         # print("referer:{},type:{}".format(referer, type(referer)))
-        index1 = referer.find("https://dmt.lcworkroom.cn/")
-        index2 = referer.find("http://localhost")
-        # todo 将allow url做成配置文件
-        if index1 == -1 and index2 == -1:
-            print("[get_porttrait]External Domain Name : {} Reference Pictures Prohibited".format(referer))
+        for url in allowurl:
+            # print("Allow Url:{}".format(url))
+            index = referer.find(url)
+            if index != -1:
+                break
+        else:
+            log_main.warning("[get_porttrait]External Domain Name : {} Reference Pictures Prohibited".format(referer))
             try:
                 path = os.path.join(Main_filepath, "data/image/ban.jpg")
                 with open(path, "rb") as f:
@@ -441,7 +445,7 @@ def get_portrait(user_id:str):
             message = msg.partition("<Message>")[2].partition("</Message>")[0]
             # todo 以后要做一个判断机制
 
-            # print("[get_portrait]{}:{}".format(code,message))
+            print("[get_portrait]{}:{}".format(code,message))
             try:
                 path = os.path.join(Main_filepath,"data/image/default.jpg")
                 with open(path,"rb") as f :
