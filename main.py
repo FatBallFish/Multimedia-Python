@@ -79,6 +79,7 @@ def Initialize(argv:list):
         webport = cf.get("Main", "webport")
         intdebug = cf.get("Main", "webdebug")
         allowurl = str(cf.get("COS","allowurl")).split(",")
+        print("allowurl:{}".format(allowurl))
         if intdebug == 1:
             webdebug = True
         else:
@@ -404,10 +405,11 @@ def get_portrait(user_id:str):
         log_main.error("[get_porttrait]{}".format(e))
     try:
         referer = str(request.headers.get("Referer"))
-        # print("referer:{}".format(referer))
+        print("referer:{}".format(referer))
         # print("referer:{},type:{}".format(referer, type(referer)))
         for url in allowurl:
             # print("Allow Url:{}".format(url))
+            #todo 服务器上有bug
             index = referer.find(url)
             if index != -1:
                 break

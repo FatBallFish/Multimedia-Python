@@ -239,7 +239,7 @@ def bytes_download(key:str)->bytes:
             fp = response['Body'].get_raw_stream()
             data = fp.read()
         except Exception as e:
-            print(type(e))
+            # print(type(e))
             # 容灾处理，若网络取不到则取本地，都取不到再返回默认头像
             try:
                 with open(os.path.join(Main_filepath, "data", "local", key),"rb") as fp:
