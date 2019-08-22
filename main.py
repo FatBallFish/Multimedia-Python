@@ -26,6 +26,7 @@ def Initialize(argv:list):
 模块初始化，此函数应在所有命令之前调用
     :param argv: 命令行参数表
     """
+    print("Progarm run at [{}]".format(time.strftime("%Y:%m:%d %H:%M:%S",time.localtime())))
     # print("Enter the function")
     global config_addr
     try:
@@ -405,7 +406,7 @@ def get_portrait(user_id:str):
         log_main.error("[get_porttrait]{}".format(e))
     try:
         referer = str(request.headers.get("Referer"))
-        print("referer:{}".format(referer))
+        # print("referer:{}".format(referer))
         # print("referer:{},type:{}".format(referer, type(referer)))
         for url in allowurl:
             # print("Allow Url:{}".format(url))
@@ -446,7 +447,6 @@ def get_portrait(user_id:str):
             code = msg.partition("<Code>")[2].partition("</Code>")[0]
             message = msg.partition("<Message>")[2].partition("</Message>")[0]
             # todo 以后要做一个判断机制
-
             print("[get_portrait]{}:{}".format(code,message))
             try:
                 path = os.path.join(Main_filepath,"data/image/default.jpg")

@@ -5,3 +5,4 @@ my.log
 temp/
 config.ini
 data/local/
+jobs.sqlite

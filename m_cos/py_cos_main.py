@@ -3,6 +3,9 @@ from qcloud_cos import CosConfig
 from qcloud_cos import CosS3Client
 from qcloud_cos import CosServiceError
 from qcloud_cos import CosClientError
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.jobstores.redis import RedisJobStore
+from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 
 import MD5
 import sys,os,configparser
@@ -27,17 +30,23 @@ COS 模块初始化，此函数应在所有函数之前调用
 
     # 设置用户属性, 包括secret_id, secret_key, region
     # appid已在配置中移除,请在参数Bucket中带上appid。Bucket由bucketname-appid组成
-    global secret_id, secret_key, region, token, config, client,bucket
+    global secret_id, secret_key, region, token, config, client,bucket,cache_time
     try:
         secret_id = str(cf.get("COS","secret_id"))  # 替换为用户的secret_id
         secret_key = str(cf.get("COS","secret_key"))  # 替换为用户的secret_key
         region = str(cf.get("COS","region"))  # 替换为用户的region
         token = None  # 使用临时秘钥需要传入Token，默认为空,可不填
         bucket =  str(cf.get("COS","bucket"))
+        cache_time_str = str(cf.get("COS","cache_time")) # 本地缓存清理时间，以天为计,若参数出错默认为3
+        if cache_time_str.isdigit():
+            cache_time = int(cache_time_str)
+        else:
+            cache_time = 3
         print("[COS]secret_id:",secret_id)
         print("[COS]secret_key:",secret_key)
         print("[COS]region:", region)
         print("[COS]bucket:", bucket)
+        print("[COS]cache_time:{}".format(cache_time))
         config = CosConfig(Region=region, SecretId=secret_id, SecretKey=secret_key, Token=token)  # 获取配置对象
         client = CosS3Client(config)
     except Exception as e:
@@ -57,13 +66,63 @@ COS 模块初始化，此函数应在所有函数之前调用
     else:
         cf.set("COS", "server_mode", "0")
         os.makedirs(os.path.join(Main_filepath,"data","local","portrait"),exist_ok=True)
+        os.makedirs(os.path.join(Main_filepath, "data", "local", "article"), exist_ok=True)
         print("[COS]Online Server is unavailable , using local storage server")
         log_cos.warning("Cos is unavailable , using local storage mode")
 
     # todo 接下来将对server_mode进行情况处理
+
+
+    # 初始化缓存清理 schedule
+    global scheduler
+    jobstores = {
+        'redis': RedisJobStore(0, host="localhost", port=6379, password="wlc570Q0"),
+        'default': SQLAlchemyJobStore(url='sqlite:///data/jobs.sqlite')
+    }
+    job_defaults = {
+        'coalesce': False,
+        'max_instances': 3
+    }
+    # BackgroundScheduler: 适合于要求任何在程序后台运行的情况，当希望调度器在应用后台执行时使用。
+    scheduler = BackgroundScheduler(jobstores=jobstores, job_defaults=job_defaults, daemonic=False)
+    scheduler.remove_all_jobs()
+    scheduler.add_job(Auto_DelLocalCache, 'interval', days=cache_time)
+    ### weeks,days,hours,minutes,seconds,start_date,end_date,timezone,jitter(最多提前或延迟作业几秒钟)
+    scheduler.start()
+    print("[COS]Start Background schedule")
+
     log_cos.info("Module COS loaded")
+
+# 线程，定时删除本地缓存
+def Auto_DelLocalCache():
+    root_path = os.path.join(Main_filepath,"data","local")
+    try:
+        del_file(root_path)
+    except Exception as e:
+        print("[COS_Schedule]{}".format(e))
+        log_cos.error(e)
+    else:
+        print("[COS_Schedule]Succcessful to clear local cache")
+        log_cos.info("[COS_Schedule]Succcessful to clear local cache")
+# 递归删除缓存文件
+def del_file(path):
+    ls = os.listdir(path)
+    for file in ls:
+        c_path = os.path.join(path,file)
+        if os.path.isfile(c_path):
+            try:
+                os.remove(c_path)
+            except Exception as e:
+                raise e
+        else:
+            try:
+                del_file(c_path)
+            except Exception as e:
+                raise e
 def online_check()->bool:
     # return False
+    os.makedirs(os.path.join(Main_filepath, "data", "local", "portrait"), exist_ok=True)
+    os.makedirs(os.path.join(Main_filepath, "data", "local", "article"), exist_ok=True)
     response = client.list_buckets()
     buckets = response["Buckets"]["Bucket"]
     for bucket in buckets:
@@ -77,8 +136,6 @@ def online_check()->bool:
         server_mode = False
         cf.set("COS", "server_mode", "0")
         cf.write(open(os.path.join(Main_filepath,"config.ini"), "w"))
-        os.makedirs(os.path.join(Main_filepath, "data", "local", "portrait"), exist_ok=True)
-        os.makedirs(os.path.join(Main_filepath, "data", "local", "article"), exist_ok=True)
         return False
 # 文件流 简单上传
 def file_upload(filename:str,key:str,storageclass:str='STANDARD',contentype:str='text/html; charset=utf-8') -> str:
