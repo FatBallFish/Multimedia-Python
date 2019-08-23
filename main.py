@@ -967,6 +967,67 @@ def get_comment():
                                      order=order, start=start, num=num, id=id)
     return json.dumps(json_dict)
 
+@app.route("/active",methods=["POST"])
+def active():
+    try:
+        token = request.args["token"]
+        print("token:", token)
+    except Exception as e:
+        print("Missing necessary args")
+        log_main.error("Missing necessary agrs")
+        # status -100 缺少必要的参数
+        return json.dumps({"id": -1, "status": -100, "message": "Missing necessary args", "data": {}})
+    token_check_result, username = MySQL.Doki2(token)
+    if token_check_result == False:
+        # status -101 token不正确
+        return json.dumps({"id": -1, "status": -101, "message": "Error token", "data": {}})
+    # 验证身份完成，处理数据
+    data = request.json
+    print(data)
+
+    # 判断键值对是否存在
+    try:
+        keys = data.keys()
+    except Exception as e:
+        # status -1 json的key错误。此处id是因为没有进行读取，所以返回默认的-1。
+        return json.dumps({"id": -1, "status": -1, "message": "Error JSON key", "data": {}})
+    # 先获取json里id的值，若不存在，默认值为-1
+    if "id" in data.keys():
+        id = data["id"]
+    else:
+        id = -1
+
+    # 判断指定所需字段是否存在，若不存在返回status -1 json。
+    for key in ["type", "subtype", "data"]:
+        if key not in data.keys():
+            # status -1 json的key错误。
+            return json.dumps({"id": id, "status": -1, "message": "Error JSON key", "data": {}})
+    # 处理json
+    type = data["type"]
+    subtype = data["subtype"]
+    data = data["data"]
+    if type == "active":
+        if subtype == "add":
+            for key in ["title","content"]:
+                if key not in data.keys():
+                    # status -3 json的value错误。
+                    return json.dumps({"id": id, "status": -3, "message": "Error data key", "data": {}})
+            title = str(data["title"])
+            content = str(data["content"])
+            start_time = ""
+            end_time = ""
+            if "start_time" in data.keys():
+                start_time = data["start_time"]
+            if "end_time" in data.keys():
+                end_time = data["end_time"]
+            json_dict = MySQL.AddActive(user_id=username,title=title,content=content,start_time=start_time,end_time=end_time,id=id)
+            return json.dumps(json_dict)
+        else:
+            # status -2 json的value错误。
+            return json.dumps({"id": id, "status": -2, "message": "Error JSON value", "data": {}})
+    else:
+        # status -2 json的value错误。
+        return json.dumps({"id": id, "status": -2, "message": "Error JSON value", "data": {}})
 if __name__ == '__main__':
     Initialize(sys.argv[1  :])
     # thread_token = MyThread(1, "AutoRemoveExpireToken", 1)

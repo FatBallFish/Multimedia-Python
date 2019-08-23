@@ -76,7 +76,7 @@ COS 模块初始化，此函数应在所有函数之前调用
     # 初始化缓存清理 schedule
     global scheduler
     jobstores = {
-        'redis': RedisJobStore(0, host="localhost", port=6379, password="wlc570Q0"),
+        'redis': RedisJobStore(0, host="localhost", port=6379, password=""),
         'default': SQLAlchemyJobStore(url='sqlite:///data/jobs.sqlite')
     }
     job_defaults = {

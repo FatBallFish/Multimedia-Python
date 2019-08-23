@@ -978,5 +978,54 @@ def GetCommentList(article_id:int,comment_id:str,father_id:str,content:str,order
         comment_list.append(comment_dict)
     # status 0 successful
     return {"id": id, "status": 0, "message": "successful", "data": {"num": row_num, "list": comment_list}}
+
+def AddActive(user_id:str,title:str,content:str,start_time:str,end_time:str,id:int=-1)->dict:
+    cur = conn.cursor()
+    time_list = list(str(time.time()).replace(".", ""))
+    time_list.reverse()
+    active_id = int("".join(time_list[:8]))
+    start_time = start_time.strip()
+    end_time = end_time.strip()
+    if start_time != "":
+        try:
+            check_start_time = datetime.datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S")
+        except Exception as e:
+            print(e)
+            log_mysql.error(e)
+            # status 100 Error time data 开始时间或结束时间格式或数据错误
+            return {"id": id, "status": 100, "message": "Error format or data for time", "data": {}}
+    if end_time != "":
+        try:
+            check_end_time = datetime.datetime.strptime(end_time, "%Y-%m-%d %H:%M:%S")
+        except Exception as e:
+            print(e)
+            log_mysql.error(e)
+            # status 100 Error time data 开始时间或结束时间格式或数据错误
+            return {"id": id, "status": 100, "message": "Error format or data for time", "data": {}}
+
+    create_time = time.strftime("%Y:%m:%d %H:%M:%S", time.localtime())
+    update_time = create_time
+    sql = "INSERT INTO bbs_active (active_id,user_id,title,content,start_time,end_time,create_time,update_time) " \
+          "VALUES ({},'{}','{}','{}','{}','{}','{}','{}')".format(active_id,user_id,title,content,start_time,end_time,create_time,update_time)
+    print(sql)
+    try:
+        num = cur.execute(sql)
+        conn.commit()
+        cur.close()
+    except Exception as e:
+        # conn.rollback()
+        cur.close()
+        print("Failed to execute sql:{}|{}".format(sql, e))
+        log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
+        Auto_KeepConnect()
+        # status -200 Failure to operate database sql语句错误
+        return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
+    if num == 1:
+        # status 0 成功处理数据
+        return {"id": id, "status": 0, "message": "Successful", "data": {"active_id":active_id}}
+    else:
+        # status -200 Execute sql failed sql语句错误
+        return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
+
 if __name__ == '__main__':
     Initialize()
