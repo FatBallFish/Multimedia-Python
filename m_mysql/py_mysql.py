@@ -1119,10 +1119,9 @@ def UpateActive(active_id:int,user_id:str,title:str,content:str,start_time:str,e
             # status 102 Error time data 开始时间或结束时间格式或数据错误
             return {"id": id, "status": 102, "message": "Error format or data for time", "data": {}}
 
-    create_time = time.strftime("%Y:%m:%d %H:%M:%S", time.localtime())
-    update_time = create_time
-    sql = "UPDATE bbs_active SET title = '{}',content = '{}',start_time = '{}',end_time = '{}',create_time = '{}',update_time = '{}' " \
-          "WHERE active_id = {} AND user_id = '{}'".format(title, content, start_time, end_time, create_time, update_time, active_id, user_id)
+    update_time = time.strftime("%Y:%m:%d %H:%M:%S", time.localtime())
+    sql = "UPDATE bbs_active SET title = '{}',content = '{}',start_time = '{}',end_time = '{}',update_time = '{}' " \
+          "WHERE active_id = {} AND user_id = '{}'".format(title, content, start_time, end_time, update_time, active_id, user_id)
     print(sql)
     try:
         num = cur.execute(sql)
