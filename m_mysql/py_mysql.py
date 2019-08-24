@@ -659,6 +659,7 @@ article_id、title、content可交集查询；
     :param order: 排序规则，使用SQL语句，为空则默认以更新时间进行排序
     :param start: 记录索引开始，默认起始为 0
     :param num: 返回记录数，默认返回50条
+    :param id: 请求事件id
     :return: 返回json字典，包含id,status,message,data根字段
     """
     cur = conn.cursor()
@@ -992,16 +993,16 @@ def AddActive(user_id:str,title:str,content:str,start_time:str,end_time:str,id:i
         except Exception as e:
             print(e)
             log_mysql.error(e)
-            # status 100 Error time data 开始时间或结束时间格式或数据错误
-            return {"id": id, "status": 100, "message": "Error format or data for time", "data": {}}
+            # status 102 Error time data 开始时间或结束时间格式或数据错误
+            return {"id": id, "status": 102, "message": "Error format or data for time", "data": {}}
     if end_time != "":
         try:
             check_end_time = datetime.datetime.strptime(end_time, "%Y-%m-%d %H:%M:%S")
         except Exception as e:
             print(e)
             log_mysql.error(e)
-            # status 100 Error time data 开始时间或结束时间格式或数据错误
-            return {"id": id, "status": 100, "message": "Error format or data for time", "data": {}}
+            # status 102 Error time data 开始时间或结束时间格式或数据错误
+            return {"id": id, "status": 102, "message": "Error format or data for time", "data": {}}
 
     create_time = time.strftime("%Y:%m:%d %H:%M:%S", time.localtime())
     update_time = create_time
@@ -1027,5 +1028,236 @@ def AddActive(user_id:str,title:str,content:str,start_time:str,end_time:str,id:i
         # status -200 Execute sql failed sql语句错误
         return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
 
+def CheckActiveIfExist(active_id:int)->bool:
+    """
+检查活动是否存在
+    :param active_id: 活动id，8位长度
+    :return: 存在返回真，不存在或查询出错返回假
+    """
+    cur = conn.cursor()
+    sql = "SELECT COUNT(active_id) as num FROM bbs_active WHERE active_id = {}".format(active_id)
+    try:
+        num = cur.execute(sql)
+        conn.commit()
+        cur.close()
+    except Exception as e:
+        # conn.rollback()
+        cur.close()
+        print("Failed to execute sql:{}|{}".format(sql, e))
+        log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
+        Auto_KeepConnect()
+        # status -200 Failure to operate database sql语句错误
+        return False
+    num = cur.fetchone()[0]
+    if num == 1:
+        return True
+    else:
+        return False
+
+def GetActiveOwner(active_id:int)->str:
+    """
+get an active's owner user_id.
+    :param active_id: article id
+    :return: user_id,failed or no such active_id return a void string
+    """
+    cur = conn.cursor()
+    sql = "SELECT user_id FROM bbs_active WHERE active_id = {}".format(active_id)
+    try:
+        num = cur.execute(sql)
+        conn.commit()
+    except Exception as e:
+        # conn.rollback()
+        cur.close()
+        print("Failed to execute sql:{}|{}".format(sql, e))
+        log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
+        Auto_KeepConnect()
+        return ""
+    if num == 1:
+        user_id = cur.fetchone()[0]
+        print("user_id:",user_id)
+        cur.close()
+        return user_id
+    else:
+        cur.close()
+        return ""
+
+def UpateActive(active_id:int,user_id:str,title:str,content:str,start_time:str,end_time:str,id:int=-1)->dict:
+    """
+更新活动内容
+    :param active_id: 活动id，8位长度
+    :param user_id: 用户id
+    :param title: 活动标题
+    :param content: 活动内容
+    :param start_time: 开始时间
+    :param end_time: 结束时间
+    :param id: 请求事件id
+    :return: json_dict
+    """
+    cur = conn.cursor()
+    if not CheckActiveIfExist(active_id):
+        # status 100 Error active_id 错误的活动id
+        return {"id":id,"status":100,"message":"Error active_id","data":{}}
+    if GetActiveOwner(active_id) != user_id:
+        # status 101 Error user_id 错误的用户id
+        return {"id": id, "status": 101, "message": "Error user_id", "data": {}}
+    start_time = start_time.strip()
+    end_time = end_time.strip()
+    if start_time != "":
+        try:
+            check_start_time = datetime.datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S")
+        except Exception as e:
+            print(e)
+            log_mysql.error(e)
+            # status 102 Error time data 开始时间或结束时间格式或数据错误
+            return {"id": id, "status": 102, "message": "Error format or data for time", "data": {}}
+    if end_time != "":
+        try:
+            check_end_time = datetime.datetime.strptime(end_time, "%Y-%m-%d %H:%M:%S")
+        except Exception as e:
+            print(e)
+            log_mysql.error(e)
+            # status 102 Error time data 开始时间或结束时间格式或数据错误
+            return {"id": id, "status": 102, "message": "Error format or data for time", "data": {}}
+
+    create_time = time.strftime("%Y:%m:%d %H:%M:%S", time.localtime())
+    update_time = create_time
+    sql = "UPDATE bbs_active SET title = '{}',content = '{}',start_time = '{}',end_time = '{}',create_time = '{}',update_time = '{}' " \
+          "WHERE active_id = {} AND user_id = '{}'".format(title, content, start_time, end_time, create_time, update_time, active_id, user_id)
+    print(sql)
+    try:
+        num = cur.execute(sql)
+        conn.commit()
+        cur.close()
+    except Exception as e:
+        # conn.rollback()
+        cur.close()
+        print("Failed to execute sql:{}|{}".format(sql, e))
+        log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
+        Auto_KeepConnect()
+        # status -200 Failure to operate database sql语句错误
+        return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
+    if num == 1:
+        # status 0 成功处理数据
+        return {"id": id, "status": 0, "message": "Successful", "data": {}}
+    else:
+        # status -200 Execute sql failed sql语句错误
+        return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
+
+def DeleteActive(user_id:str,active_id:int,id:int=-1)->dict:
+    """
+删除活动内容
+    :param user_id: 用户id
+    :param active_id: 活动id，8位长度
+    :param id: 请求事件id
+    :return: json_dict
+    """
+    cur = conn.cursor()
+    if not CheckActiveIfExist(active_id):
+        # status 101 Error active_id 错误的店铺id
+        return {"id":id,"status":100,"message":"Error active_id","data":{}}
+    if GetActiveOwner(active_id) != user_id:
+        # status 102 Error user_id 错误的店铺id
+        return {"id": id, "status": 101, "message": "Error active_id", "data": {}}
+    sql = "DELETE FROM bbs_active WHERE active_id = {} AND user_id = '{}'".format(active_id,user_id)
+    print(sql)
+    try:
+        num = cur.execute(sql)
+        conn.commit()
+        cur.close()
+    except Exception as e:
+        # conn.rollback()
+        cur.close()
+        print("Failed to execute sql:{}|{}".format(sql, e))
+        log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
+        Auto_KeepConnect()
+        # status -200 Failure to operate database sql语句错误
+        return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
+    if num == 1:
+        # status 0 成功处理数据
+        return {"id": id, "status": 0, "message": "Successful", "data": {}}
+    else:
+        # status -200 Execute sql failed sql语句错误
+        return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
+
+def GetActiveList(keywords:str,active_id:int,title:str,content:str,order:str,start:int,num:int,id:int=-1)->dict:
+    """
+获取活动列表。
+如果keywords不为空则优先使用keywords，active_id、title、content则被忽略；keywords用于title和content的并集查询，模糊匹配；
+active_id、title、content可交集查询；
+    :param keywords: 搜索关键字，设置后将以此关键字模糊匹配title和content字段内容,模糊匹配
+    :param active_id: 活动id，精确匹配
+    :param title: 活动标题，模糊匹配
+    :param content: 活动内容，模糊匹配
+    :param order: 排序规则，使用SQL语句，为空则默认以更新时间进行排序
+    :param id: 请求事件id
+    :return:
+    """
+    cur = conn.cursor()
+    if order != "":
+        order_list_first = order.split(",")
+        for order_second in order_list_first:
+            order_list_second = order_second.split()
+            order_third: str
+            for order_third in order_list_second:
+                if order_third.lower() not in ["active_id", "user_id", "title", "content", "create_time",
+                                               "update_time","start_time","end_time"
+                                               "asc", "desc"]:
+                    # status 100 Error Order 排序规则错误
+                    return {"id": -1, "status": 100, "message": "Error order", "data": {}}
+        order = " ORDER BY " + order
+    if num <= 0:
+        # status 101 Error num num值错误
+        return {"id": id, "status": 101, "message": "Error num", "data": {}}
+
+    if keywords != "":
+        sql = "SELECT * FROM bbs_active WHERE title LIKE '%{0}%' OR content LIKE '%{0}%' {1} LIMIT {2} , {3}".format(
+            keywords, order, start, num)
+    else:
+        condition = ""
+        if active_id != 0:
+            condition = condition + "active_id = {} AND ".format(active_id)
+        if title != "":
+            condition = condition + "title LIKE '%{}%' AND ".format(title)
+        if content != "":
+            condition = condition + "content LIKE '%{}%' AND ".format(content)
+
+        if condition == "":
+            sql = "SELECT * FROM bbs_active {0} LIMIT {1} , {2}".format(order, start, num)
+        else:
+            condition = condition.rpartition("AND ", )[0]
+            sql = "SELECT * FROM bbs_active WHERE {} {} LIMIT {} , {}".format(condition, order, start, num)
+    print(sql)
+    try:
+        row_num = cur.execute(sql)
+        conn.commit()
+    except Exception as e:
+        # conn.rollback()
+        cur.close()
+        print("Failed to execute sql:{}|{}".format(sql, e))
+        log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
+        Auto_KeepConnect()
+        # status -200 Execute sql failed sql语句错误
+        return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
+
+    rows = cur.fetchall()
+    cur.close()
+    # row_num = len(rows)
+    if row_num == 0:
+        # status 0 successful
+        return {"id": id, "status": 0, "message": "successful", "data": {"num": 0, "list": []}}
+    active_list = []
+    active_dict = {}
+    for row in rows:
+        active_dict["active_id"] = row[0]
+        active_dict["user_id"] = row[1]
+        active_dict["title"] = row[2]
+        active_dict["content"] = row[3]
+        active_dict["start_time"] = str(row[4])
+        active_dict["end_time"] = str(row[5])
+        active_dict["create_time"] = str(row[6])
+        active_dict["update_time"] = str(row[7])
+        active_list.append(active_dict)
+    # status 0 successful
+    return {"id": id, "status": 0, "message": "successful", "data": {"num": row_num, "list": active_list}}
 if __name__ == '__main__':
     Initialize()

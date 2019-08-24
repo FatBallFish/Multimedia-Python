@@ -100,13 +100,30 @@ headers = {'content-type': "application/json"}
 # # response = requests.post(url="https://dmt.lcworkroom.cn/api/comment?token={}".format(token),data=json.dumps(data),headers=headers)
 # response = requests.post(url="http://127.0.0.1:8765/portrait?token={}".format(token),data=json.dumps(data),headers=headers)
 
-# 增加活动
+# # 增加活动
+# data={"id":0,
+#       "type":"active",
+#       "subtype":"add",
+#       "data":{"title":"校友召集令","content":"恰逢更名时机，召集校友来此一聚","start_time":"2019-08-24 00:00:00","end_time":"2019-8-25 0:0:0"}}
+# token = "99c9150238fa21051f558ceccad55b8a"
+# # response = requests.post(url="https://dmt.lcworkroom.cn/api/active?token={}".format(token),data=json.dumps(data),headers=headers)
+# response = requests.post(url="http://127.0.0.1:8765/active?token={}".format(token),data=json.dumps(data),headers=headers)
+
+# # 更新活动
+# data={"id":0,
+#       "type":"active",
+#       "subtype":"update",
+#       "data":{"active_id":78554587,"title":"校友召集令","content":"恰逢更名时机，召集校友来此一聚，更新活动内容","start_time":"2019-08-25 00:00:00","end_time":"2019-8-26 0:0:0"}}
+# token = "99c9150238fa21051f558ceccad55b8a"
+# # response = requests.post(url="https://dmt.lcworkroom.cn/api/active?token={}".format(token),data=json.dumps(data),headers=headers)
+# response = requests.post(url="http://127.0.0.1:8765/active?token={}".format(token),data=json.dumps(data),headers=headers)
+
+# 删除活动
 data={"id":0,
       "type":"active",
-      "subtype":"add",
-      "data":{"title":"校友召集令","content":"恰逢更名时机，召集校友来此一聚","start_time":"2019-08-24 00:00:00","end_time":"2019-8-25 0:0:0"}}
+      "subtype":"delete",
+      "data":{"active_id":86889745}}
 token = "99c9150238fa21051f558ceccad55b8a"
 # response = requests.post(url="https://dmt.lcworkroom.cn/api/active?token={}".format(token),data=json.dumps(data),headers=headers)
 response = requests.post(url="http://127.0.0.1:8765/active?token={}".format(token),data=json.dumps(data),headers=headers)
-
 print(response.text)

@@ -751,7 +751,7 @@ def get_article():
             continue
         elif key == "article_id":
             if isinstance(arg_dict["article_id"],int):
-                article_id = arg_dict["article"]
+                article_id = arg_dict["article_id"]
             elif isinstance(arg_dict["article_id"],str):
                 if str(arg_dict["article_id"]).isdigit():
                     article_id = int(arg_dict["article_id"])
@@ -1022,12 +1022,124 @@ def active():
                 end_time = data["end_time"]
             json_dict = MySQL.AddActive(user_id=username,title=title,content=content,start_time=start_time,end_time=end_time,id=id)
             return json.dumps(json_dict)
+        elif subtype == "update":
+            for key in ["active_id","title","content"]:
+                if key not in data.keys():
+                    # status -3 json的value错误。
+                    return json.dumps({"id": id, "status": -3, "message": "Error data key", "data": {}})
+            active_id = data["active_id"]
+            title = data["title"]
+            content = data["content"]
+            start_time = ""
+            end_time = ""
+            if "start_time" in data.keys():
+                start_time = data["start_time"]
+            if "end_time" in data.keys():
+                end_time = data["end_time"]
+            json_dict = MySQL.UpateActive(active_id=active_id,user_id=username,title=title,content=content,start_time=start_time,end_time=end_time,id=id)
+            return json.dumps(json_dict)
+        elif subtype == "delete":
+            for key in ["active_id"]:
+                if key not in data.keys():
+                    # status -3 json的value错误。
+                    return json.dumps({"id": id, "status": -3, "message": "Error data key", "data": {}})
+            active_id = data["active_id"]
+            json_dict = MySQL.DeleteActive(user_id=username,active_id=active_id,id=id)
+            return json.dumps(json_dict)
         else:
             # status -2 json的value错误。
             return json.dumps({"id": id, "status": -2, "message": "Error JSON value", "data": {}})
     else:
         # status -2 json的value错误。
         return json.dumps({"id": id, "status": -2, "message": "Error JSON value", "data": {}})
+
+@app.route("/get/active/list",methods=["GET"])
+def get_active():
+    try:
+        token = request.args.get("token")
+    except Exception as e:
+        # status -100 Missing necessary args api地址中缺少token参数
+        return json.dumps({"id": -1, "status": -100, "message": "Missing necessary args", "data": {}})
+    check_token_result,user_id = MySQL.Doki2(token)
+    if token == None:
+        # status -100 Missing necessary args api地址中缺少token参数
+        return json.dumps({"id": -1, "status": -100, "message": "Missing necessary args", "data": {}})
+    if check_token_result == False:
+        # status -101 Error token token不正确
+        return json.dumps({"id": -1, "status": -101, "message": "Error token", "data": {}})
+    # 验证身份完成，处理数据
+    arg_dict = dict(request.args)
+    # num = len(arg_dict)
+    # if num == 1:
+    #     # status Missing necessary args api地址中缺少token参数
+    #     return json.dumps({"id": -1, "status": -100, "message": "Missing necessary args", "data": {}})
+
+    keywords = ""
+    active_id = 0
+    title = ""
+    content = ""
+    order = "update_time DESC"
+    start = 0
+    num = 50
+    for key in arg_dict.keys():
+        if key == "token":
+            continue
+        elif key == "active_id":
+            if isinstance(arg_dict["active_id"],int):
+                active_id = arg_dict["active_id"]
+            elif isinstance(arg_dict["active_id"],str):
+                if str(arg_dict["active_id"]).isdigit():
+                    active_id = int(arg_dict["active_id"])
+            else:
+                # status -203 Arg's value type error 键值对数据类型错误
+                return json.dumps({"id":-1,"status":-203,"message":"Arg's value type error","data":{}})
+        elif key == "title":
+            if isinstance(arg_dict["title"], str):
+                title = arg_dict["title"]
+            else:
+                # status -203 Arg's value type error 键值对数据类型错误
+                return json.dumps({"id": -1, "status": -203, "message": "Arg's value type error", "data": {}})
+        elif key == "content":
+            if isinstance(arg_dict["content"], str):
+                content = arg_dict["content"]
+            else:
+                # status -203 Arg's value type error 键值对数据类型错误
+                return json.dumps({"id": -1, "status": -203, "message": "Arg's value type error", "data": {}})
+        elif key == "keywords":
+            if isinstance(arg_dict["keywords"], str):
+                keywords = arg_dict["keywords"]
+            else:
+                # status -203 Arg's value type error 键值对数据类型错误
+                return json.dumps({"id": -1, "status": -203, "message": "Arg's value type error", "data": {}})
+        elif key == "order":
+            if isinstance(arg_dict["order"], str):
+                order = arg_dict["order"]
+            else:
+                # status -203 Arg's value type error 键值对数据类型错误
+                return json.dumps({"id": -1, "status": -203, "message": "Arg's value type error", "data": {}})
+            order = str(arg_dict["order"])
+        elif key == "start":
+            if isinstance(arg_dict["start"],int):
+                start = arg_dict["start"]
+            elif isinstance(arg_dict["start"],str):
+                if str(arg_dict["start"]).isdigit():
+                    start = int(arg_dict["start"])
+            else:
+                # status -203 Arg's value type error 键值对数据类型错误
+                return json.dumps({"id":-1,"status":-203,"message":"Arg's value type error","data":{}})
+        elif key == "num":
+            if isinstance(arg_dict["num"],int):
+                num = arg_dict["num"]
+            elif isinstance(arg_dict["num"],str):
+                if str(arg_dict["num"]).isdigit():
+                    num = int(arg_dict["num"])
+            else:
+                # status -203 Arg's value type error 键值对数据类型错误
+                return json.dumps({"id":-1,"status":-203,"message":"Arg's value type error","data":{}})
+        else:
+            continue
+    json_dict = MySQL.GetActiveList(keywords=keywords,active_id=active_id,title=title,content=content,order=order,start=start,num=num)
+    return json.dumps(json_dict)
 if __name__ == '__main__':
     Initialize(sys.argv[1  :])
     # thread_token = MyThread(1, "AutoRemoveExpireToken", 1)
