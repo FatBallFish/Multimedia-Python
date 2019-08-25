@@ -1854,7 +1854,7 @@
 
 > ## 注意
 
-- 只传递`token`参数则返回所有文章
+- 只传递`token`参数则返回所有活动
 - 如果`keywords`不为空则优先使用`keywords`，`article_id`、`title`、`content`则被忽略；
 - `keywords`用于`title`和`content`的并集查询，模糊匹配；
 - `active_id`、`title`、`content`可交集查询；
@@ -1917,6 +1917,248 @@
 | :----- | ----------- | ----------------- |
 | 100    | Error Order | 排序规则错误      |
 | 101    | Error num   | num值错误，不能<1 |
+
+#### 加入活动
+
+> **API说明**
+
+此API用于用户加入活动
+
+> **API类型**
+
+**请求类型：`POST`**
+
+> **API地址：**
+
+**https://dmt.lcworkroom.cn/api/active?token=**
+
+> **url 参数表**
+
+| 参数  | 可否为空 | 可否缺省 | 数据类型 | 字段长度 |               例子               |       备注        |
+| :---: | :------: | :------: | :------: | :------: | :------------------------------: | :---------------: |
+| token |          |          |  string  |    32    | debc454ea24827b67178482fd73f37c3 | 由登录api返回获得 |
+
+> **POST发送请求的json文本**
+
+```python
+{
+    "id":1234,
+    "type":"active",
+    "subtype":"join",
+    "data":{
+        "active_id":78554587,
+    }
+}
+```
+
+> **data字段表**
+
+|   参数    | 可否为空 | 可否缺省 | 数据类型 | 字段长度 |   例子   |  备注  |
+| :-------: | :------: | :------: | :------: | :------: | :------: | :----: |
+| active_id |          |          |   int    |    8     | 78554587 | 活动id |
+
+> **Python端返回成功处理情况**
+
+```python
+{
+    "id": 1234, 
+    "status": 0, 
+    "message": "Successful", 
+    "data": {}
+}
+```
+
+> **Python端返回失败处理情况**
+
+```python
+{
+     "id":1234,
+     "status":-200,  #错误码
+     "message":"Failure to operate database",
+     "data":{},
+}
+```
+
+> **所用到的全局status**
+
+全局参数详情请看[全局Status表](#全局Status表)
+
+| status |
+| ------ |
+| -200   |
+| -101   |
+| -100   |
+| -3     |
+| -2     |
+| -1     |
+
+> **局部status表**
+
+| status | message                       | 内容                             |
+| :----- | ----------------------------- | -------------------------------- |
+| 100    | Error active_id               | 错误的活动id，可能并不存在       |
+| 102    | Error format or data for time | 开始时间或结束时间格式或数据错误 |
+
+#### 退出活动
+
+> **API说明**
+
+此API用于用户加入活动
+
+> **API类型**
+
+**请求类型：`POST`**
+
+> **API地址：**
+
+**https://dmt.lcworkroom.cn/api/active?token=**
+
+> **url 参数表**
+
+| 参数  | 可否为空 | 可否缺省 | 数据类型 | 字段长度 |               例子               |       备注        |
+| :---: | :------: | :------: | :------: | :------: | :------------------------------: | :---------------: |
+| token |          |          |  string  |    32    | debc454ea24827b67178482fd73f37c3 | 由登录api返回获得 |
+
+> **POST发送请求的json文本**
+
+```python
+{
+    "id":1234,
+    "type":"active",
+    "subtype":"exit",
+    "data":{
+        "active_id":78554587,
+    }
+}
+```
+
+> **data字段表**
+
+|   参数    | 可否为空 | 可否缺省 | 数据类型 | 字段长度 |   例子   |  备注  |
+| :-------: | :------: | :------: | :------: | :------: | :------: | :----: |
+| active_id |          |          |   int    |    8     | 78554587 | 活动id |
+
+> **Python端返回成功处理情况**
+
+```python
+{
+    "id": 1234, 
+    "status": 0, 
+    "message": "Successful", 
+    "data": {}
+}
+```
+
+> **Python端返回失败处理情况**
+
+```python
+{
+     "id":1234,
+     "status":-200,  #错误码
+     "message":"Failure to operate database",
+     "data":{},
+}
+```
+
+> **所用到的全局status**
+
+全局参数详情请看[全局Status表](#全局Status表)
+
+| status |
+| ------ |
+| -200   |
+| -101   |
+| -100   |
+| -3     |
+| -2     |
+| -1     |
+
+> **局部status表**
+
+| status | message                       | 内容                                   |
+| :----- | ----------------------------- | -------------------------------------- |
+| 100    | Error active_id               | 错误的活动id，可能并不存在             |
+| 101    | Error user_id                 | 活动参与者id与当前登录id不一致或无权限 |
+| 102    | Error format or data for time | 开始时间或结束时间格式或数据错误       |
+
+#### 获取活动成员列表
+
+> **API说明**
+
+此API用于获取论坛活动列表
+
+> **API类型**
+
+**请求类型：`GET`**
+
+> **API地址：**
+
+**https://dmt.lcworkroom.cn/api/get/active/member**
+
+> **url 参数表**
+
+|   参数    | 可否为空 | 可否缺省 | 数据类型 | 字段长度 | 默认值           |               例子               |                        备注                         |
+| :-------: | :------: | :------: | :------: | :------: | ---------------- | :------------------------------: | :-------------------------------------------------: |
+|   token   |          |          |  string  |    32    |                  | debc454ea24827b67178482fd73f37c3 |                  由登录api返回获得                  |
+| active_id |    √     |    √     |   int    |    8     |                  |             78554587             |                  活动id，精确匹配                   |
+|   order   |    √     |    √     |  string  |          | update_time DESC |          join_time ASC           | 排序规则，使用SQL语句，为空则默认以加入时间升序排序 |
+|   start   |    √     |    √     |   int    |          | 0                |                0                 |             记录索引开始，默认起始为 0              |
+|    num    |    √     |    √     |   int    |          | 50               |                10                |              返回记录数，默认返回50条               |
+
+> ## 注意
+
+- `order`中可用于排序的字段有`active_id`, `user_id`, `title`,`content`,`start_time`,`end_time`,`create_time`, `update_time`;
+- `order`排序方法有：升序`asc`、降序`desc`，大小写不区分。多条件排序时用英文半角`,`分割
+- 当实际记录数小于`num`的值时，只返回实际记录数量的记录
+
+> **URL例程**
+
+**https://dmt.lcworkroom.cn/api/get/active/member?token=99c9150238fa21051f558ceccad55b8a&active_id=78554587**
+
+> **Python端返回成功处理情况**
+
+```python
+{
+    "id": -1, 
+    "status": 0, 
+    "message": "successful", 
+    "data": {
+        "num": 1, 
+        "list": [
+            "13750687010"
+        ]
+    }
+}
+```
+
+> **Python端返回失败处理情况**
+
+```python
+{
+    "id": -1, 
+    "status": -101, 
+    "message": "Error Token", 
+    "data": {}
+}
+```
+
+> **所用到的全局status**
+
+全局参数详情请看[全局Status表](#全局Status表)
+
+| status |
+| ------ |
+| -203   |
+| -200   |
+| -101   |
+| -100   |
+
+> **局部status表**
+
+| status | message         | 内容         |
+| :----- | --------------- | ------------ |
+| 100    | Error Order     | 排序规则错误 |
+| 102    | Error active_id | 错误的活动id |
 
 ## **全局Status表**
 

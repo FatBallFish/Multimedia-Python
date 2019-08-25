@@ -1054,6 +1054,35 @@ def CheckActiveIfExist(active_id:int)->bool:
     else:
         return False
 
+def CheckActiveIfJoin(active_id:int,user_id:str)->bool:
+    """
+检查用户是否加入了该活动
+    :param active_id: 活动id
+    :param user_id: 用户id
+    :return: 已加入返回真，活动不存在或未加入或查询出错返回假
+    """
+    cur = conn.cursor()
+    if not CheckActiveIfExist(active_id):
+        return False
+    sql = "SELECT COUNT(active_id) as num FROM active_users WHERE active_id = {} AND user_id = '{}'".format(active_id,user_id)
+    try:
+        num = cur.execute(sql)
+        conn.commit()
+        cur.close()
+    except Exception as e:
+        # conn.rollback()
+        cur.close()
+        print("Failed to execute sql:{}|{}".format(sql, e))
+        log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
+        Auto_KeepConnect()
+        # status -200 Failure to operate database sql语句错误
+        return False
+    num = cur.fetchone()[0]
+    if num == 1:
+        return True
+    else:
+        return False
+
 def GetActiveOwner(active_id:int)->str:
     """
 get an active's owner user_id.
@@ -1178,6 +1207,77 @@ def DeleteActive(user_id:str,active_id:int,id:int=-1)->dict:
         # status -200 Execute sql failed sql语句错误
         return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
 
+def JoinActive(active_id:int,user_id:str,id:int=-1):
+    """
+加入活动。
+    :param active_id: 活动id
+    :param user_id: 用户id
+    :param id: 请求事件id
+    :return:
+    """
+    cur = conn.cursor()
+    if not CheckActiveIfExist(active_id=active_id):
+        # status 100 Error active_id
+        return {"id":id,"status":100,"message":"Error active_id","data":{}}
+    if CheckActiveIfJoin(active_id=active_id,user_id=user_id):
+        # status 102 Already joined
+        return {"id": id, "status": 102, "message": "Already joined","data":{}}
+    join_time = time.strftime("%Y:%m:%d %H:%M:%S",time.localtime())
+    sql = "INSERT INTO active_users (active_id,user_id,join_time) VALUES ({},'{}','{}')".format(active_id,user_id,join_time)
+    try:
+        num = cur.execute(sql)
+        conn.commit()
+        cur.close()
+    except Exception as e:
+        # conn.rollback()
+        cur.close()
+        print("Failed to execute sql:{}|{}".format(sql, e))
+        log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
+        Auto_KeepConnect()
+        # status -200 Failure to operate database sql语句错误
+        return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
+    if num == 1:
+        # status 0 成功处理数据
+        return {"id": id, "status": 0, "message": "Successful", "data": {}}
+    else:
+        # status -200 Execute sql failed sql语句错误
+        return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
+
+def ExitActive(active_id:int,user_id:str,id:int=-1):
+    """
+退出活动
+    :param active_id: 活动id
+    :param user_id: 用户id
+    :param id: 请求事件处理id
+    :return:
+    """
+    cur = conn.cursor()
+    if not CheckActiveIfExist(active_id=active_id):
+        # status 100 Error active_id
+        return {"id": id, "status": 100, "message": "Error active_id","data":{}}
+    if not CheckActiveIfJoin(active_id=active_id,user_id=user_id):
+        # status 101 Error user_id
+        return {"id": id, "status": 101, "message": "Error user_id","data":{}}
+    sql = "DELETE FROM active_users WHERE active_id = {} AND user_id = '{}'".format(active_id,user_id)
+    try:
+        num = cur.execute(sql)
+        conn.commit()
+        cur.close()
+    except Exception as e:
+        # conn.rollback()
+        cur.close()
+        print("Failed to execute sql:{}|{}".format(sql, e))
+        log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
+        Auto_KeepConnect()
+        # status -200 Failure to operate database sql语句错误
+        return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
+    if num == 1:
+        # status 0 成功处理数据
+        return {"id": id, "status": 0, "message": "Successful", "data": {}}
+    else:
+        # status -200 Execute sql failed sql语句错误
+        return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
+
 def GetActiveList(keywords:str,active_id:int,title:str,content:str,order:str,start:int,num:int,id:int=-1)->dict:
     """
 获取活动列表。
@@ -1188,6 +1288,8 @@ active_id、title、content可交集查询；
     :param title: 活动标题，模糊匹配
     :param content: 活动内容，模糊匹配
     :param order: 排序规则，使用SQL语句，为空则默认以更新时间进行排序
+    :param start: 起始索引，默认为0
+    :param num: 获取记录数，默认为50
     :param id: 请求事件id
     :return:
     """
@@ -1258,5 +1360,55 @@ active_id、title、content可交集查询；
         active_list.append(active_dict)
     # status 0 successful
     return {"id": id, "status": 0, "message": "successful", "data": {"num": row_num, "list": active_list}}
+
+def GetActiveMember(active_id:int,order:str,start:int,num:int,id:int=-1)->dict:
+    """
+获取活动参加人员列表
+    :param active_id: 活动id
+    :param order: 排序规则，使用SQL语句，为空则默认以更新时间进行排序
+    :param start: 起始索引，默认为0
+    :param num: 获取记录数，默认为50
+    :param id: 请求事件处理id
+    :return:
+    """
+    cur = conn.cursor()
+    if active_id == 0:
+        # status 102 Error active_id 错误的文章id
+        return {"id":id,"status":102,"message":"Error active_id","data":{}}
+    if order != "":
+        order_list_first = order.split(",")
+        for order_second in order_list_first:
+            order_list_second = order_second.split()
+            order_third: str
+            for order_third in order_list_second:
+                if order_third.lower() not in ["active_id", "user_id", "join_time","asc", "desc"]:
+                    # status 100 Error Order 排序规则错误
+                    return {"id": -1, "status": 100, "message": "Error order", "data": {}}
+        order = " ORDER BY " + order
+    sql = "SELECT user_id FROM active_users WHERE active_id = {} {}".format(active_id,order)
+    print(sql)
+    try:
+        row_num = cur.execute(sql)
+        conn.commit()
+    except Exception as e:
+        # conn.rollback()
+        cur.close()
+        print("Failed to execute sql:{}|{}".format(sql, e))
+        log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
+        Auto_KeepConnect()
+        # status -200 Execute sql failed sql语句错误
+        return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
+    rows = cur.fetchall()
+    cur.close()
+    # row_num = len(rows)
+    if row_num == 0:
+        # status 0 successful
+        return {"id": id, "status": 0, "message": "successful", "data": {"num": 0, "list": []}}
+    mumber_list = []
+    for row in rows:
+        mumber_list.append(row[0])
+    # status 0 successful
+    return {"id": id, "status": 0, "message": "successful", "data": {"num": row_num, "list": mumber_list}}
+
 if __name__ == '__main__':
     Initialize()

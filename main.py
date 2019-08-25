@@ -1046,6 +1046,16 @@ def active():
             active_id = data["active_id"]
             json_dict = MySQL.DeleteActive(user_id=username,active_id=active_id,id=id)
             return json.dumps(json_dict)
+        elif subtype == "join":
+            for key in ["active_id"]:
+                active_id = data["active_id"]
+            json_dict = MySQL.JoinActive(active_id=active_id,user_id=username,id=id)
+            return json.dumps(json_dict)
+        elif subtype == "exit":
+            for key in ["active_id"]:
+                active_id = data["active_id"]
+            json_dict = MySQL.ExitActive(active_id=active_id,user_id=username,id=id)
+            return json.dumps(json_dict)
         else:
             # status -2 json的value错误。
             return json.dumps({"id": id, "status": -2, "message": "Error JSON value", "data": {}})
@@ -1139,6 +1149,61 @@ def get_active():
         else:
             continue
     json_dict = MySQL.GetActiveList(keywords=keywords,active_id=active_id,title=title,content=content,order=order,start=start,num=num)
+    return json.dumps(json_dict)
+
+@app.route("/get/active/member")
+def get_active_member():
+    active_id = 0
+    order = "join_time ASC"
+    start = 0
+    num = 50
+    try:
+        token = request.args.get("token")
+    except Exception as e:
+        # status -100 Missing necessary args api地址中缺少token参数
+        return json.dumps({"id": -1, "status": -100, "message": "Missing necessary args", "data": {}})
+    check_token_result,user_id = MySQL.Doki2(token)
+    if token == None:
+        # status -100 Missing necessary args api地址中缺少token参数
+        return json.dumps({"id": -1, "status": -100, "message": "Missing necessary args", "data": {}})
+    if check_token_result == False:
+        # status -101 Error token token不正确
+        return json.dumps({"id": -1, "status": -101, "message": "Error token", "data": {}})
+    # 验证身份完成，处理数据
+    arg_dict = dict(request.args)
+    for key in arg_dict.keys():
+        if key == "token":
+            continue
+        elif key == "active_id":
+            if isinstance(arg_dict["active_id"],int):
+                active_id = arg_dict["active_id"]
+            elif isinstance(arg_dict["active_id"],str):
+                if str(arg_dict["active_id"]).isdigit():
+                    active_id = int(arg_dict["active_id"])
+            else:
+                # status -203 Arg's value type error 键值对数据类型错误
+                return json.dumps({"id":-1,"status":-203,"message":"Arg's value type error","data":{}})
+        elif key == "start":
+            if isinstance(arg_dict["start"],int):
+                start = arg_dict["start"]
+            elif isinstance(arg_dict["start"],str):
+                if str(arg_dict["start"]).isdigit():
+                    start = int(arg_dict["start"])
+            else:
+                # status -203 Arg's value type error 键值对数据类型错误
+                return json.dumps({"id":-1,"status":-203,"message":"Arg's value type error","data":{}})
+        elif key == "num":
+            if isinstance(arg_dict["num"],int):
+                num = arg_dict["num"]
+            elif isinstance(arg_dict["num"],str):
+                if str(arg_dict["num"]).isdigit():
+                    num = int(arg_dict["num"])
+            else:
+                # status -203 Arg's value type error 键值对数据类型错误
+                return json.dumps({"id":-1,"status":-203,"message":"Arg's value type error","data":{}})
+        else:
+            continue
+    json_dict = MySQL.GetActiveMember(active_id=active_id,order=order,start=start, num=num)
     return json.dumps(json_dict)
 if __name__ == '__main__':
     Initialize(sys.argv[1  :])
