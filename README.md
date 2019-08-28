@@ -753,7 +753,7 @@
 
 > **API地址：**
 
-**https://dmt.lcworkroom.cn/get/portrait/<user_id>**
+**https://dmt.lcworkroom.cn/api/get/portrait/<user_id>**
 
 > **url 参数表**
 
@@ -763,7 +763,7 @@
 
 > **API例子**
 
-**https://dmt.lcworkroom.cn/get/portrait/1180310086**
+**https://dmt.lcworkroom.cn/api/get/portrait/13750687010**
 
 > **Python端返回成功处理情况**
 
