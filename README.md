@@ -673,7 +673,7 @@
 
 > **API地址：**
 
-**https://dmt.lcworkroom.cn/api/protrait?token=**
+**https://dmt.lcworkroom.cn/api/porotrait?token=**
 
 > **url 参数表**
 
