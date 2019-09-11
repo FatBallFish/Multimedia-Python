@@ -149,9 +149,9 @@ def Login(phone:str,password:str,enduring:int=0)->tuple:
 
 def Register(phone:str,password:str)->tuple:
     """
-    Login API,return a tuple(status,result string)
+    Register API,return a tuple(status,result string)
     :param phone: username
-    :param password: with base64
+    :param password: with MD5
     :return: a tuple(status,result string)
     """
     cur = conn.cursor()
@@ -230,6 +230,58 @@ def Register(phone:str,password:str)->tuple:
         cur.close()
         # status 200 记录数量有误
         return (200,"Invalid record number ")
+
+def ForgetPass(phone:str,password:str,id:int=-1)->dict:
+    """
+忘记密码，重置密码
+    :param phone: 用户账号
+    :param password: 新密码
+    :param id: 事件请求id
+    :return: json_dict
+    """
+    cur = conn.cursor()
+    # 生成10位salt
+    salt = ""
+    for i in range(10):
+        # 每循环一次，随机生成一个字母或数字
+        # 使用ASCII码，A-Z为65-90，a-z为97-122，0-9为48-57,使用chr把生成的ASCII码转换成字符
+        char1 = random.choice([chr(random.randint(65, 90)), chr(random.randint(48, 57)), chr(random.randint(97, 122))])
+        salt += char1
+    pass_db = MD5.md5(password, salt)
+    sql = "UPDATE users SET password = '{}',salt = '{}' WHERE phone = '{}'".format(pass_db,salt,phone)
+    try:
+        num = cur.execute(sql)
+        conn.commit()
+    except Exception as e:
+        # conn.rollback()
+        cur.close()
+        print("Failed to execute sql:{}|{}".format(sql, e))
+        log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
+        Auto_KeepConnect()
+        # status -200 sql执行失败
+        return {"id":id,"status":-200,"message":"Failure to operate database","data":{}}
+    if num == 1:
+        # status 0 执行成功s
+        return {"id": id, "status": 0, "message": "successful", "data": {}}
+    else:
+        # status -200 sql执行失败
+        return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
+
+def ChangePass(phone:str,old:str,new:str,id:int=-1)->dict:
+    """
+更改用户密码
+    :param phone: 用户账号
+    :param old: 老密码
+    :param new: 新密码
+    :param id: 事件请求id
+    :return: json_dict
+    """
+    status,message = Login(phone,old)
+    if status != 0:
+        # status xxxx
+        return {"id":id,"status":status,"message":message,"data":{}}
+    json_dict = ForgetPass(phone=phone,password=new,id=id)
+    return json_dict
 
 def AddToken(phone:str,enduring:int=0)->str:
     """
@@ -901,13 +953,14 @@ Delete an comment
         # status -200 Execute sql failed sql语句错误
         return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
 
-def GetCommentList(article_id:int,comment_id:str,father_id:str,content:str,order:str,start:int,num:int,id:int=-1)->dict:
+def GetCommentList(article_id:int,comment_id:str,father_id:str,user_id:str,content:str,order:str,start:int,num:int,id:int=-1)->dict:
     """
 获取某一篇文章下的评论列表,article_id为必传字段，father_id则选传
 所有条件将进行并集查询
     :param article_id: 文章id，精确匹配
     :param comment_id: 评论id，精确匹配，为空则表示不作为条件
     :param father_id: 父评论id，精确匹配，为空则表示不作为条件
+    :param user_id: 作者id，精确匹配，为空则表示不作为条件
     :param content: 评论内容，模糊匹配，为空则表示不作为条件
     :param order: 排序规则，SQL语法
     :param start: 起始索引，默认为0
@@ -939,6 +992,8 @@ def GetCommentList(article_id:int,comment_id:str,father_id:str,content:str,order
             condition = condition + "comment_id = '{}' AND ".format(comment_id)
         if father_id != "":
             condition = condition + "father_id = '{}' AND ".format(father_id)
+        if user_id != "":
+            condition = condition + "user_id = '{}' AND ".format(user_id)
         if content != "":
             condition = condition + "content LIKE '%{}%' AND ".format(content)
 
@@ -1278,13 +1333,14 @@ def ExitActive(active_id:int,user_id:str,id:int=-1):
         # status -200 Execute sql failed sql语句错误
         return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
 
-def GetActiveList(keywords:str,active_id:int,title:str,content:str,order:str,start:int,num:int,id:int=-1)->dict:
+def GetActiveList(keywords:str,active_id:int,user_id:str,title:str,content:str,order:str,start:int,num:int,id:int=-1)->dict:
     """
 获取活动列表。
 如果keywords不为空则优先使用keywords，active_id、title、content则被忽略；keywords用于title和content的并集查询，模糊匹配；
 active_id、title、content可交集查询；
     :param keywords: 搜索关键字，设置后将以此关键字模糊匹配title和content字段内容,模糊匹配
     :param active_id: 活动id，精确匹配
+    :param user_id: 用户id，精确匹配
     :param title: 活动标题，模糊匹配
     :param content: 活动内容，模糊匹配
     :param order: 排序规则，使用SQL语句，为空则默认以更新时间进行排序
@@ -1317,6 +1373,8 @@ active_id、title、content可交集查询；
         condition = ""
         if active_id != 0:
             condition = condition + "active_id = {} AND ".format(active_id)
+        if user_id != "":
+            condition = condition + "user_id = '{}' AND ".format(user_id)
         if title != "":
             condition = condition + "title LIKE '%{}%' AND ".format(title)
         if content != "":

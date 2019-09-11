@@ -127,14 +127,14 @@ headers = {'content-type': "application/json"}
 # # response = requests.post(url="https://dmt.lcworkroom.cn/api/active?token={}".format(token),data=json.dumps(data),headers=headers)
 # response = requests.post(url="http://127.0.0.1:8765/active?token={}".format(token),data=json.dumps(data),headers=headers)
 
-# 加入活动
-data={"id":0,
-      "type":"active",
-      "subtype":"join",
-      "data":{"active_id":78554587}}
-token = "99c9150238fa21051f558ceccad55b8a"
-# response = requests.post(url="https://dmt.lcworkroom.cn/api/active?token={}".format(token),data=json.dumps(data),headers=headers)
-response = requests.post(url="http://127.0.0.1:8765/active?token={}".format(token),data=json.dumps(data),headers=headers)
+# # 加入活动
+# data={"id":0,
+#       "type":"active",
+#       "subtype":"join",
+#       "data":{"active_id":78554587}}
+# token = "99c9150238fa21051f558ceccad55b8a"
+# # response = requests.post(url="https://dmt.lcworkroom.cn/api/active?token={}".format(token),data=json.dumps(data),headers=headers)
+# response = requests.post(url="http://127.0.0.1:8765/active?token={}".format(token),data=json.dumps(data),headers=headers)
 
 # # 退出活动
 # data={"id":0,

@@ -237,6 +237,62 @@ def register():
         # status -2 json的value错误。
         return json.dumps({"id": id, "status": -2, "message": "Error JSON value", "data": {}})
 
+@app.route("/user/password",methods=["POST"])
+def password():
+    data = request.json
+    print(data)
+    # 判断键值对是否存在
+    try:
+        keys = data.keys()
+    except Exception as e:
+        # status -1 json的key错误。此处id是因为没有进行读取，所以返回默认的-1。
+        return json.dumps({"id": -1, "status": -1, "message": "Error JSON key", "data": {}})
+    # 先获取json里id的值，若不存在，默认值为-1
+    if "id" in data.keys():
+        id = data["id"]
+    else:
+        id = -1
+
+    # 判断指定所需字段是否存在，若不存在返回status -1 json。
+    for key in ["type", "subtype", "data"]:
+        if key not in data.keys():
+            # status -1 json的key错误。
+            return json.dumps({"id": id, "status": -1, "message": "Error JSON key", "data": {}})
+    # 处理json
+    if data["type"] == "password":
+        if data["subtype"] == "forget":
+            data = data["data"]
+            for key in data.keys():
+                if key not in ["phone", "hash", "pass"]:
+                    # status -3 json的value错误。
+                    return json.dumps({"id": id, "status": -3, "message": "Error data key", "data": {}})
+            phone = data["phone"]
+            hash = data["hash"]
+            password = data["pass"]
+            # todo check salt
+            result = Redis.SafeCheck(hash)
+            if result == False:
+                # status 400 hash不存在
+                return json.dumps({"id": id, "status": 400, "message": "Error hash", "data": {}})
+            json_dict = MySQL.ForgetPass(phone=phone, password=password,id=id)
+            return json.dumps(json_dict)
+        elif data["subtype"] == 'change':
+            data = data["data"]
+            for key in data.keys():
+                if key not in ["phone", "old", "new"]:
+                    # status -3 json的value错误。
+                    return json.dumps({"id": id, "status": -3, "message": "Error data key", "data": {}})
+            phone = data["phone"]
+            old = data["old"]
+            new = data["new"]
+            json_dict = MySQL.ChangePass(phone=phone,old=old,new=new,id=id)
+        else:
+            # status -2 json的value错误。
+            return json.dumps({"id": id, "status": -2, "message": "Error JSON value", "data": {}})
+    else:
+        # status -2 json的value错误。
+        return json.dumps({"id": id, "status": -2, "message": "Error JSON value", "data": {}})
+
 @app.route("/user/info",methods=["GET","POST"])
 def userinfo():
     if request.method == "GET":
@@ -597,9 +653,26 @@ def captcha():
             # if result != 0:
             #     # status 400 Error Hash hash错误。
             #     return json.dumps({"id": id, "status": 400, "message": "Error Hash", "data": {}})
+            command_str = "注册账号"
+            if "command_type" in data.keys():
+                if isinstance(data["command_type"],str):
+                    if data["command_type"].isdecimal():
+                        command_type = int(data["command_type"])
+                    else:
+                        # status -2 json的value错误。
+                        return json.dumps({"id": id, "status": -2, "message": "Error JSON value", "data": {}})
+                elif isinstance(data["command_type"],int):
+                    command_type = data["command_type"]
+                else:
+                    # status -2 json的value错误。
+                    return json.dumps({"id": id, "status": -2, "message": "Error JSON value", "data": {}})
+                if command_type == 1:  # 注册账号
+                    command_str = "注册账号"
+                if command_type == 2:  # 忘记密码
+                    command_str = "忘记密码"
             phone = str(data["phone"])
             code = random.randint(10000,99999)
-            result = SmsCaptcha.SendCaptchaCode(phone,code,ext=str(id))
+            result = SmsCaptcha.SendCaptchaCode(phone,code,ext=str(id),command_str=command_str)
             status = result["result"]
             message = result["errmsg"]
             if message == "OK":
@@ -906,6 +979,7 @@ def get_comment():
     order = "update_time DESC"
     start = 0
     num = 50
+    user_id = ""
     for key in arg_dict.keys():
         if key == "token":
             continue
@@ -961,10 +1035,18 @@ def get_comment():
             else:
                 # status -203 Arg's value type error 键值对数据类型错误
                 return json.dumps({"id": -1, "status": -203, "message": "Arg's value type error", "data": {}})
+        elif key == "user_id":
+            if isinstance(arg_dict["user_id"], int):
+                user_id = str(arg_dict["user_id"])
+            elif isinstance(arg_dict["user_id"], str):
+                user_id = arg_dict["user_id"]
+            else:
+                # status -203 Arg's value type error 键值对数据类型错误
+                return json.dumps({"id": -1, "status": -203, "message": "Arg's value type error", "data": {}})
         else:
             continue
-    json_dict = MySQL.GetCommentList(article_id=article_id, comment_id=comment_id, father_id=father_id, content=content,
-                                     order=order, start=start, num=num, id=id)
+    json_dict = MySQL.GetCommentList(article_id=article_id, comment_id=comment_id, father_id=father_id, user_id=user_id,
+                                     content=content, order=order, start=start, num=num, id=id)
     return json.dumps(json_dict)
 
 @app.route("/active",methods=["POST"])
@@ -1086,6 +1168,7 @@ def get_active():
 
     keywords = ""
     active_id = 0
+    user_id = ""
     title = ""
     content = ""
     order = "update_time DESC"
@@ -1100,6 +1183,14 @@ def get_active():
             elif isinstance(arg_dict["active_id"],str):
                 if str(arg_dict["active_id"]).isdigit():
                     active_id = int(arg_dict["active_id"])
+            else:
+                # status -203 Arg's value type error 键值对数据类型错误
+                return json.dumps({"id":-1,"status":-203,"message":"Arg's value type error","data":{}})
+        elif key == "user_id":
+            if isinstance(arg_dict["user_id"],int):
+                user_id = str(arg_dict["user_id"])
+            elif isinstance(arg_dict["user_id"],str):
+                user_id = arg_dict["user_id"]
             else:
                 # status -203 Arg's value type error 键值对数据类型错误
                 return json.dumps({"id":-1,"status":-203,"message":"Arg's value type error","data":{}})
@@ -1148,7 +1239,8 @@ def get_active():
                 return json.dumps({"id":-1,"status":-203,"message":"Arg's value type error","data":{}})
         else:
             continue
-    json_dict = MySQL.GetActiveList(keywords=keywords,active_id=active_id,title=title,content=content,order=order,start=start,num=num)
+    json_dict = MySQL.GetActiveList(keywords=keywords,active_id=active_id,user_id=user_id,title=title,content=content,
+                                    order=order,start=start,num=num)
     return json.dumps(json_dict)
 
 @app.route("/get/active/member")
@@ -1205,6 +1297,7 @@ def get_active_member():
             continue
     json_dict = MySQL.GetActiveMember(active_id=active_id,order=order,start=start, num=num)
     return json.dumps(json_dict)
+
 if __name__ == '__main__':
     Initialize(sys.argv[1  :])
     # thread_token = MyThread(1, "AutoRemoveExpireToken", 1)
