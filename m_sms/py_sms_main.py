@@ -83,7 +83,7 @@ def SendCaptchaCode(phone_number:str, captcha:str,command_str:str="注册账号"
             print("UnkonwnError:"%e)
     # log_sms.info(result)
     return result
-def SendCaptchaCode(phone_number:str, captcha:str,ext:str="")->dict:
+def SendCaptchaCode(phone_number:str, captcha:str,ext:str="",command_str:str="注册账号")->dict:
     """
     向指定手机号发送指定验证码，返回证验证结果
 
@@ -100,7 +100,7 @@ def SendCaptchaCode(phone_number:str, captcha:str,ext:str="")->dict:
     sms_sign = "本小宅"
     # print("checkcode:",checkcode)
     # 模版参数，具体根据短信模版中定义的参数进行
-    params = ["注册账号", captcha, 3]
+    params = [command_str, captcha, 3]
     try:
         result = ssender.send_with_param(86, phone_number, template_id, params, sign=sms_sign, extend="", ext=ext)
         # 签名参数未提供或者为空时，会使用默认签名发送短信
