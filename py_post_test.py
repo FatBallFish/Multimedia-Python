@@ -4,14 +4,14 @@ import base64
 import MD5
 
 headers = {'content-type': "application/json"}
-# 发送手机短信
-data={"id":0,"type":"sms","subtype":"generate","data":{"phone":"15857174214"}}
-response = requests.post(url="http://127.0.0.1:8765/captcha",data=json.dumps(data),headers=headers)
-
-code = input("验证码：")
-rand = input("随机值：")
-md5 = MD5.md5(code,rand)
-print("md5:",md5)
+# # 发送手机短信
+# data={"id":0,"type":"sms","subtype":"generate","data":{"phone":"15857174214"}}
+# response = requests.post(url="http://127.0.0.1:8765/captcha",data=json.dumps(data),headers=headers)
+#
+# code = input("验证码：")
+# rand = input("随机值：")
+# md5 = MD5.md5(code,rand)
+# print("md5:",md5)
 # # 注册
 # # md5 = "fc80574292e05779bbe1d494bf7481c7"
 # data={"id":0,"status":0,"type":"register","subtype":"phone","data":{"phone":"13750687010","hash":md5,"pass":"wlc570Q0"}}
@@ -145,4 +145,14 @@ print("md5:",md5)
 # # response = requests.post(url="https://dmt.lcworkroom.cn/api/active?token={}".format(token),data=json.dumps(data),headers=headers)
 # response = requests.post(url="http://127.0.0.1:8765/active?token={}".format(token),data=json.dumps(data),headers=headers)
 
+# 修改密码
+data={"id":0,
+      "type":"password",
+      "subtype":"change",
+      "data":{"phone":"13750687010",
+              "old":"abc123",
+              "new":"wlc570Q0"}}
+# token = "99c9150238fa21051f558ceccad55b8a"
+# response = requests.post(url="https://dmt.lcworkroom.cn/api/active?token={}".format(token),data=json.dumps(data),headers=headers)
+response = requests.post(url="http://127.0.0.1:8765/user/password",data=json.dumps(data),headers=headers)
 print(response.text)

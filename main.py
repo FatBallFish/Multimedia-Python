@@ -286,6 +286,7 @@ def password():
             old = data["old"]
             new = data["new"]
             json_dict = MySQL.ChangePass(phone=phone,old=old,new=new,id=id)
+            return json.dumps(json_dict)
         else:
             # status -2 json的value错误。
             return json.dumps({"id": id, "status": -2, "message": "Error JSON value", "data": {}})
