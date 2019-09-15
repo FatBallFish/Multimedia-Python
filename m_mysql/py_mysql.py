@@ -7,6 +7,7 @@ from configparser import ConfigParser
 import datetime
 import time
 import MD5,random
+import re
 
 log_mysql = logging.getLogger("MySql")
 lock = threading.Lock()
@@ -730,7 +731,7 @@ Delete an article
         # status -200 Execute sql failed sql语句错误
         return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
 
-def GetArticleList(keywords:str,article_id:int,title:str,content:str,order:str,start:int,num:int,id:int=-1)->dict:
+def GetArticleList(keywords:str,article_id:int,title:str,content:str,order:str,start:int,num:int,mode:int,id:int=-1)->dict:
     """
 获取文章列表，
 如果keywords不为空则优先使用keywords，article_id、title、content则被忽略；keywords用于title和content的并集查询，模糊匹配；
@@ -742,6 +743,7 @@ article_id、title、content可交集查询；
     :param order: 排序规则，使用SQL语句，为空则默认以更新时间进行排序
     :param start: 记录索引开始，默认起始为 0
     :param num: 返回记录数，默认返回50条
+    :param mode: 文本返回模式，1为精简模式，0为全文模式
     :param id: 请求事件id
     :return: 返回json字典，包含id,status,message,data根字段
     """
@@ -807,6 +809,12 @@ article_id、title、content可交集查询；
         article_dict["content"] = row[3]
         article_dict["create_time"] = str(row[4])
         article_dict["update_time"] = str(row[5])
+        if mode == 1:
+            searchObj  = re.search("<p>(.*?)<",article_dict["content"])
+            if searchObj != None:
+                text = searchObj.group(1)
+                text = text.replace("&nbsp;", "")
+                article_dict["content"] = text
         article_list.append(article_dict)
     # status 0 successful
     return {"id": id, "status": 0, "message": "successful", "data": {"num": row_num, "list": article_list}}

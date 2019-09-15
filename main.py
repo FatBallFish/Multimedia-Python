@@ -872,6 +872,7 @@ def get_article():
     order = "update_time DESC"
     start = 0
     num = 50
+    mode = 0
     for key in arg_dict.keys():
         if key == "token":
             continue
@@ -927,9 +928,18 @@ def get_article():
             else:
                 # status -203 Arg's value type error 键值对数据类型错误
                 return json.dumps({"id":-1,"status":-203,"message":"Arg's value type error","data":{}})
+        elif key == "mode":
+            if isinstance(arg_dict["mode"],int):
+                mode = arg_dict["mode"]
+            elif isinstance(arg_dict["mode"],str):
+                if str(arg_dict["mode"]).isdigit():
+                    mode = int(arg_dict["mode"])
+            else:
+                # status -203 Arg's value type error 键值对数据类型错误
+                return json.dumps({"id":-1,"status":-203,"message":"Arg's value type error","data":{}})
         else:
             continue
-    json_dict = MySQL.GetArticleList(keywords=keywords,article_id=article_id,title=title,content=content,order=order,start=start,num=num)
+    json_dict = MySQL.GetArticleList(keywords=keywords,article_id=article_id,title=title,content=content,order=order,start=start,num=num,mode=mode)
     return json.dumps(json_dict)
 
 @app.route("/comment",methods=["POST"])
