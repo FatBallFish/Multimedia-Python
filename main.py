@@ -846,6 +846,10 @@ def atricle():
 
 @app.route("/get/article/list",methods=["GET"])
 def get_article():
+    json = request.json
+    data = request.data
+    print("json:",json)
+    print("data:",data)
     try:
         token = request.args.get("token")
     except Exception as e:
