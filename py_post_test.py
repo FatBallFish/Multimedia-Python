@@ -33,14 +33,21 @@ headers = {'content-type': "application/json"}
 # response = requests.post(url="https://dmt.lcworkroom.cn/api/user/info?token={}".format(token),data=json.dumps(data),headers=headers)
 # # response = requests.post(url="http://127.0.0.1:8888/user/info?token={}".format(token),data=json.dumps(data),headers=headers)
 
-# 获取nickname
-data={"id":0,
-      "type":"info",
-      "subtype":"nickname",
-      "data":{"user_id":"13750687010"}}
+# # 获取nickname
+# data={"id":0,
+#       "type":"info",
+#       "subtype":"nickname",
+#       "data":{"user_id":"13750687010"}}
+# token = "99c9150238fa21051f558ceccad55b8a"
+# # response = requests.post(url="https://dmt.lcworkroom.cn/api/user/nickname?token={}".format(token),data=json.dumps(data),headers=headers)
+# response = requests.post(url="http://127.0.0.1:8765/user/nickname?token={}".format(token),data=json.dumps(data),headers=headers)
+
+# 获取指定文章
+data={"article_id":1565926081}
 token = "99c9150238fa21051f558ceccad55b8a"
-# response = requests.post(url="https://dmt.lcworkroom.cn/api/user/nickname?token={}".format(token),data=json.dumps(data),headers=headers)
-response = requests.post(url="http://127.0.0.1:8765/user/nickname?token={}".format(token),data=json.dumps(data),headers=headers)
+# response = requests.post(url="https://dmt.lcworkroom.cn/api/get/article/list?token={}".format(token),data=json.dumps(data),headers=headers)
+response = requests.post(url="http://127.0.0.1:8765/get/article/list?token={}".format(token),data=json.dumps(data),headers=headers)
+
 # # 增加文章
 # data={"id":0,
 #       "type":"article",
