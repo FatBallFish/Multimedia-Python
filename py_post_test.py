@@ -43,10 +43,10 @@ headers = {'content-type': "application/json"}
 # response = requests.post(url="http://127.0.0.1:8765/user/nickname?token={}".format(token),data=json.dumps(data),headers=headers)
 
 # 获取指定文章
-data={"active_id":78554587}
+data={"article_id":1565926081}
 token = "99c9150238fa21051f558ceccad55b8a"
 # response = requests.post(url="https://dmt.lcworkroom.cn/api/get/article/list?token={}".format(token),data=json.dumps(data),headers=headers)
-response = requests.post(url="http://127.0.0.1:8765/get/active/member?token={}".format(token),data=json.dumps(data),headers=headers)
+response = requests.post(url="http://127.0.0.1:8765/get/article/list?token={}".format(token),data=json.dumps(data),headers=headers)
 
 # # 增加文章
 # data={"id":0,
