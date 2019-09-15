@@ -849,7 +849,7 @@
 
 > **API地址：**
 
-**https://dmt.lcworkroom.cn/api/porotrait?token=**
+**https://dmt.lcworkroom.cn/api/portrait?token=**
 
 > **url 参数表**
 

@@ -768,8 +768,8 @@ article_id、title、content可交集查询；
         # status 0 successful
         return {"id":id,"status":0,"message":"successful","data":{"num":0,"list":[]}}
     article_list = []
-    article_dict = {}
     for row in rows:
+        article_dict = {}
         article_dict["article_id"] = row[0]
         article_dict["user_id"] = row[1]
         article_dict["title"] = row[2]
