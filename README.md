@@ -685,6 +685,88 @@
 | 200    | Invalid record number | 有两条及以上该账号的数据 |
 | 300    | Add token failed      | 获取token失败            |
 
+#### 用户昵称·获取
+
+> **API说明**
+
+此API用于通过phone值获取对应用户信息
+
+> **API类型**
+
+**请求类型：`POST`**
+
+> **API地址：**
+
+**https://dmt.lcworkroom.cn/api/user/nickname?token=**
+
+> **url 参数表**
+
+| 参数  | 可否为空 | 可否缺省 | 数据类型 | 字段长度 |               例子               |       备注        |
+| :---: | :------: | :------: | :------: | :------: | :------------------------------: | :---------------: |
+| token |          |          |  string  |    32    | debc454ea24827b67178482fd73f37c3 | 由登录api返回获得 |
+
+> **POST发送请求的json文本**
+
+```python
+{
+    "id":0,
+    "type":"info",
+    "subtype":"update",
+    "data":{
+        "user_id":"13750687010"
+    }
+}
+```
+
+> **data字段表**
+
+| 参数  | 可否为空 | 可否缺省 | 数据类型 | 字段长度 |    例子     |       备注       |
+| :---: | :------: | :------: | :------: | :------: | :---------: | :--------------: |
+| phone |          |          |  string  |    11    | 13750687010 | 登录账号(手机号) |
+
+> **Python端返回成功处理情况**
+
+```python
+{
+    "id": -1, 
+    "status": 0, 
+    "message": "Successful", 
+    "data": { 
+        "nickname": "FatBallFish"
+    }
+}
+```
+
+> **Python端返回失败处理情况**
+
+```python
+{
+    "id": -1, 
+    "status": 1, 
+    "message": "Error Token", 
+    "data": {}
+}
+```
+
+> **所用到的全局status**
+
+全局参数详情请看[全局Status表](#全局Status表)
+
+| status |
+| ------ |
+| -200   |
+| -100   |
+| -3     |
+| -2     |
+| -1     |
+
+> **局部status表**
+
+| status | message                 | 内容             |
+| :----- | ----------------------- | ---------------- |
+| 100    | user not existed        | 账号不存在       |
+| 200    | Unkonwn user info Error | 同一phone大于2条 |
+
 #### 用户信息·获取
 
 > **API说明**

@@ -371,6 +371,58 @@ def userinfo():
         else:
             # status -2 json的value错误。
             return json.dumps({"id": id, "status": -2, "message": "Error JSON value", "data": {}})
+@app.route("/user/nickname",methods=["POST"])
+def usernickename():
+    try:
+        token = request.args["token"]
+        print("token:", token)
+    except Exception as e:
+        print("Missing necessary args")
+        log_main.error("Missing necessary agrs")
+        # status -100 缺少必要的参数
+        return json.dumps({"id": -1, "status": -100, "message": "Missing necessary args", "data": {}})
+    token_check_result, username = MySQL.Doki2(token)
+    if token_check_result == False:
+        # status -101 token不正确
+        return json.dumps({"id": -1, "status": -101, "message": "Error token", "data": {}})
+    # 验证身份完成，处理数据
+    data = request.json
+    # print(data)
+    try:
+        keys = data.keys()
+    except Exception as e:
+        # status -1 json的key错误。此处id是因为没有进行读取，所以返回默认的-1。
+        return json.dumps({"id": -1, "status": -1, "message": "Error JSON key", "data": {}})
+
+    if "id" in data.keys():
+        id = data["id"]
+    else:
+        id = -1
+
+    # 判断指定所需字段是否存在，若不存在返回status -1 json。
+    for key in ["type", "subtype", "data"]:
+        if not key in data.keys():
+            # status -1 json的key错误。
+            return json.dumps({"id": id, "status": -1, "message": "Error JSON key", "data": {}})
+    type = data["type"]
+    subtype = data["subtype"]
+    data = data["data"]
+    # 处理json
+    if type == "info":
+        if subtype == "nickname":
+            if "user_id" not in data.keys():
+                # status -3 json的value错误。
+                return json.dumps({"id": id, "status": -3, "message": "Error data key", "data": {}})
+            user_id = data['user_id']
+            json_dict = MySQL.GetUserNicknaem(user_id=user_id,id=id)
+            return json.dumps(json_dict)
+        else:
+            # status -2 json的value错误。
+            return json.dumps({"id": id, "status": -2, "message": "Error JSON value", "data": {}})
+    else:
+        # status -2 json的value错误。
+        return json.dumps({"id": id, "status": -2, "message": "Error JSON value", "data": {}})
+
 
 @app.route("/portrait",methods=["POST"])
 def portrait():

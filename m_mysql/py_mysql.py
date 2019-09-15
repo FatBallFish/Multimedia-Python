@@ -535,6 +535,37 @@ def GetUserInfo(token:str,id:int=-1)->dict:
         return {"id": id, "status": 200, "message": "Unkonwn user info Error", "data": {}}
     # todo invavild
 
+def GetUserNicknaem(user_id:str,id:int=-1)->dict:
+    cur = conn.cursor()
+    sql = "SELECT nickname FROM usersinfo WHERE phone = '{}'".format(user_id)
+    try:
+        num = cur.execute(sql)
+        conn.commit()
+    except Exception as e:
+        # conn.rollback()
+        cur.close()
+        print("Failed to execute sql:{}|{}".format(sql, e))
+        log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
+        Auto_KeepConnect()  # 尝试一下当sql出错后自动重连
+        # status -200 Get user info failed sql语句错误
+        return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
+    if num == 0:
+        cur.close()
+        # status 1 user not existed phone不存在
+        return {"id": id, "status": 100, "message": "user not existed", "data": {}}
+    elif num == 1:
+        row = cur.fetchone()
+        data = {
+            "nickname": row[0],
+        }
+        cur.close()
+        # status 0 Successful phone存在
+        return {"id": id, "status": 0, "message": "Successful", "data": data}
+    else:
+        cur.close()
+        # status 200 Unkonwn user info Error 同一phone大于2条
+        return {"id": id, "status": 200, "message": "Unkonwn user info Error", "data": {}}
+
 def AddArticle(user_id:str,title:str,content:str,id:int=-1)->dict:
     """
 Add an article to bbs,return json dict ,include id,status,message,data
