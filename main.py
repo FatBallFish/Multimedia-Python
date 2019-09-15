@@ -876,6 +876,7 @@ def get_article():
     start = 0
     num = 50
     mode = 0
+    user_id = ""
     for key in arg_dict.keys():
         if key == "token":
             continue
@@ -940,9 +941,14 @@ def get_article():
             else:
                 # status -203 Arg's value type error 键值对数据类型错误
                 return json.dumps({"id":-1,"status":-203,"message":"Arg's value type error","data":{}})
+        elif key == "user_id":
+            if isinstance(arg_dict["user_id"],str):
+                user_id = arg_dict["user_id"]
+            elif isinstance(arg_dict["user_id"],int):
+                user_id = str(arg_dict["user_id"])
         else:
             continue
-    json_dict = MySQL.GetArticleList(keywords=keywords,article_id=article_id,title=title,content=content,order=order,start=start,num=num,mode=mode)
+    json_dict = MySQL.GetArticleList(keywords=keywords,article_id=article_id,user_id=user_id,title=title,content=content,order=order,start=start,num=num,mode=mode)
     return json.dumps(json_dict)
 
 @app.route("/comment",methods=["POST"])

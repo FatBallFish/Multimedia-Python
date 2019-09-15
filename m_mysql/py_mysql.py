@@ -731,7 +731,7 @@ Delete an article
         # status -200 Execute sql failed sql语句错误
         return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
 
-def GetArticleList(keywords:str,article_id:int,title:str,content:str,order:str,start:int,num:int,mode:int,id:int=-1)->dict:
+def GetArticleList(keywords:str,article_id:int,user_id:str,title:str,content:str,order:str,start:int,num:int,mode:int,id:int=-1)->dict:
     """
 获取文章列表，
 如果keywords不为空则优先使用keywords，article_id、title、content则被忽略；keywords用于title和content的并集查询，模糊匹配；
@@ -771,6 +771,8 @@ article_id、title、content可交集查询；
         condition = ""
         if article_id != 0:
             condition = condition + "article_id = {} AND ".format(article_id)
+        if user_id != "":
+            condition = condition + "user_id = '{}' AND ".format(user_id)
         if title != "":
             condition = condition + "title LIKE '%{}%' AND ".format(title)
         if content != "":
