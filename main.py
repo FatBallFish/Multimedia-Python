@@ -1066,23 +1066,29 @@ def comment():
         # status -2 json的value错误。
         return json.dumps({"id": id, "status": -2, "message": "Error JSON value", "data": {}})
 
-@app.route("/get/comment/list",methods=["GET"])
+@app.route("/get/comment/list",methods=["GET","POST"])
 def get_comment():
     try:
-        token = request.args.get("token")
+        token = request.args["token"]
+        print("token:", token)
     except Exception as e:
-        # status -100 Missing necessary args api地址中缺少token参数
+        print("Missing necessary args")
+        log_main.error("Missing necessary agrs")
+        # status -100 缺少必要的参数
         return json.dumps({"id": -1, "status": -100, "message": "Missing necessary args", "data": {}})
-    if token == None:
-        # status -100 Missing necessary args api地址中缺少token参数
-        return json.dumps({"id": -1, "status": -100, "message": "Missing necessary args", "data": {}})
-    check_token_result,user_id = MySQL.Doki2(token)
-    if check_token_result == False:
-        # status -101 Error token token不正确
+    token_check_result, username = MySQL.Doki2(token)
+    if token_check_result == False:
+        # status -101 token不正确
         return json.dumps({"id": -1, "status": -101, "message": "Error token", "data": {}})
     # 验证身份完成，处理数据
-    id = -1
-    arg_dict = dict(request.args)
+    if "id" in request.args.keys():
+        id = request.args["id"]
+    else:
+        id = -1
+    if request.method == "GET":
+        arg_dict = dict(request.args)
+    else:
+        arg_dict = request.json
     article_id = 0
     comment_id = ""
     father_id = ""
@@ -1096,7 +1102,7 @@ def get_comment():
             continue
         elif key == "article_id":
             if isinstance(arg_dict["article_id"], int):
-                article_id = arg_dict["article"]
+                article_id = arg_dict["article_id"]
             elif isinstance(arg_dict["article_id"], str):
                 if str(arg_dict["article_id"]).isdigit():
                     article_id = int(arg_dict["article_id"])
@@ -1256,7 +1262,7 @@ def active():
         # status -2 json的value错误。
         return json.dumps({"id": id, "status": -2, "message": "Error JSON value", "data": {}})
 
-@app.route("/get/active/list",methods=["GET"])
+@app.route("/get/active/list",methods=["GET","POST"])
 def get_active():
     try:
         token = request.args.get("token")
@@ -1271,7 +1277,10 @@ def get_active():
         # status -101 Error token token不正确
         return json.dumps({"id": -1, "status": -101, "message": "Error token", "data": {}})
     # 验证身份完成，处理数据
-    arg_dict = dict(request.args)
+    if request.method == "GET":
+        arg_dict = dict(request.args)
+    else:
+        arg_dict = request.json
     # num = len(arg_dict)
     # if num == 1:
     #     # status Missing necessary args api地址中缺少token参数
@@ -1354,7 +1363,7 @@ def get_active():
                                     order=order,start=start,num=num)
     return json.dumps(json_dict)
 
-@app.route("/get/active/member")
+@app.route("/get/active/member",methods=["GET","POST"])
 def get_active_member():
     active_id = 0
     order = "join_time ASC"
@@ -1373,7 +1382,10 @@ def get_active_member():
         # status -101 Error token token不正确
         return json.dumps({"id": -1, "status": -101, "message": "Error token", "data": {}})
     # 验证身份完成，处理数据
-    arg_dict = dict(request.args)
+    if request.method == "GET":
+        arg_dict = dict(request.args)
+    else:
+        arg_dict = request.json
     for key in arg_dict.keys():
         if key == "token":
             continue
