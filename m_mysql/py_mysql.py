@@ -459,7 +459,8 @@ def Auto_KeepConnect():
     每十分钟定时断开数据库并重连，保持连接活性
     :return:
     """
-    global conn
+    global conn,Lock
+    Lock = False
     try:
         DisconnectDB()
     except:
