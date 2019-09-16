@@ -422,9 +422,14 @@ def Doki2(token:str)->tuple:
     :return: 返回逻辑值，真为token存在，假为token不存在
     """
     global Lock
-    while Lock:
+    time_js = 0
+    while Lock:  # 真为锁，假为解锁。
+        if time_js > 3:
+            Auto_KeepConnect()
         print("Locking")
-    print("UnLock")
+        time_js += 1
+        time.sleep(1)
+        pass
     Lock = True
     cur = conn.cursor()
     sql = "SELECT phone FROM tokens WHERE token = '{}'".format(token)
@@ -765,8 +770,13 @@ article_id、title、content可交集查询；
     :return: 返回json字典，包含id,status,message,data根字段
     """
     global Lock
+    time_js = 0
     while Lock :  # 真为锁，假为解锁。
+        if time_js > 3:
+            Auto_KeepConnect()
         print("Locking")
+        time_js += 1
+        time.sleep(1)
         pass
     print("UnLock")
     Lock = True
@@ -1035,8 +1045,13 @@ def GetCommentList(article_id:int,comment_id:str,father_id:str,user_id:str,conte
     :return:
     """
     global Lock
+    time_js = 0
     while Lock:  # 真为锁，假为解锁。
+        if time_js > 3:
+            Auto_KeepConnect()
         print("Locking")
+        time_js += 1
+        time.sleep(1)
         pass
     print("UnLock")
     Lock = True
