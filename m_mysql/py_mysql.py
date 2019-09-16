@@ -9,6 +9,7 @@ import time
 import MD5,random
 import re
 
+Lock = False
 log_mysql = logging.getLogger("MySql")
 lock = threading.Lock()
 def Initialize(cfg_path:str,main_path:str):
@@ -747,6 +748,10 @@ article_id、title、content可交集查询；
     :param id: 请求事件id
     :return: 返回json字典，包含id,status,message,data根字段
     """
+    global Lock
+    while Lock :  # 真为锁，假为解锁。
+        pass
+    Lock = True
     cur = conn.cursor()
     if order != "":
         order_list_first = order.split(",")
@@ -790,6 +795,7 @@ article_id、title、content可交集查询；
     except Exception as e:
         # conn.rollback()
         cur.close()
+        Lock = False
         print("Failed to execute sql:{}|{}".format(sql, e))
         log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
         Auto_KeepConnect()
@@ -798,6 +804,7 @@ article_id、title、content可交集查询；
 
     rows = cur.fetchall()
     cur.close()
+    Lock = False
     # row_num = len(rows)
     if row_num == 0:
         # status 0 successful
@@ -1009,6 +1016,10 @@ def GetCommentList(article_id:int,comment_id:str,father_id:str,user_id:str,conte
     :param id: 请求事件处理id
     :return:
     """
+    global Lock
+    while Lock:
+        pass
+    Lock = True
     cur = conn.cursor()
     if article_id == 0:
         # status 102 Error article_id 错误的文章id
@@ -1050,6 +1061,7 @@ def GetCommentList(article_id:int,comment_id:str,father_id:str,user_id:str,conte
     except Exception as e:
         # conn.rollback()
         cur.close()
+        Lock = False
         print("Failed to execute sql:{}|{}".format(sql, e))
         log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
         Auto_KeepConnect()
@@ -1058,6 +1070,7 @@ def GetCommentList(article_id:int,comment_id:str,father_id:str,user_id:str,conte
 
     rows = cur.fetchall()
     cur.close()
+    Lock = False
     # row_num = len(rows)
     if row_num == 0:
         # status 0 successful
