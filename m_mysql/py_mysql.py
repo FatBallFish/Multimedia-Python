@@ -750,7 +750,9 @@ article_id、title、content可交集查询；
     """
     global Lock
     while Lock :  # 真为锁，假为解锁。
+        print("Locking")
         pass
+    print("UnLock")
     Lock = True
     cur = conn.cursor()
     if order != "":
@@ -1017,8 +1019,10 @@ def GetCommentList(article_id:int,comment_id:str,father_id:str,user_id:str,conte
     :return:
     """
     global Lock
-    while Lock:
+    while Lock:  # 真为锁，假为解锁。
+        print("Locking")
         pass
+    print("UnLock")
     Lock = True
     cur = conn.cursor()
     if article_id == 0:
