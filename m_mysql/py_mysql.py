@@ -384,14 +384,21 @@ def Doki(token:str,id:int=-1)->dict:
     :param token: token值
     :return: 直接返回json字典
     """
+    global Lock
+    while Lock:
+        print("Locking")
+    print("UnLock")
+    Lock = True
     cur = conn.cursor()
     sql = "SELECT token FROM tokens WHERE token = '{}'".format(token)
     try:
         num = cur.execute(sql)
         conn.commit()
         cur.close()
+        Lock = False
     except Exception as e:
         cur.close()
+        Lock = False
         print("Failed to execute sql:{}|{}".format(sql, e))
         log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
         Auto_KeepConnect()  # 尝试一下当sql出错后自动重连
@@ -414,6 +421,11 @@ def Doki2(token:str)->tuple:
     :param token: token值
     :return: 返回逻辑值，真为token存在，假为token不存在
     """
+    global Lock
+    while Lock:
+        print("Locking")
+    print("UnLock")
+    Lock = True
     cur = conn.cursor()
     sql = "SELECT phone FROM tokens WHERE token = '{}'".format(token)
     try:
@@ -421,6 +433,7 @@ def Doki2(token:str)->tuple:
         conn.commit()
     except Exception as e:
         cur.close()
+        Lock = False
         print("Failed to execute sql:{}|{}".format(sql, e))
         log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
         Auto_KeepConnect()  # 尝试一下当sql出错后自动重连
@@ -430,12 +443,14 @@ def Doki2(token:str)->tuple:
     if num == 1:
         data = cur.fetchone()
         cur.close()
+        Lock = False
         phone = data[0]
         RefreshToken(token)
         # status 0 Successfully Token存在
         return (True,phone)
     else:
         cur.close()
+        Lock = True
         # status -404 Unkonwn token Error 同一Token大于2条
         return (False,"")
 
