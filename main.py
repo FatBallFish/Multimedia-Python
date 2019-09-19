@@ -3,7 +3,7 @@ from m_mysql import py_mysql as MySQL
 from m_img import py_captcha_main as ImgCaptcha
 from m_sms import py_sms_main as SmsCaptcha
 from m_redis import py_redis as Redis
-from m_cos import  py_cos_main as Cos
+from m_cos import py_cos_main as Cos
 from configparser import ConfigParser
 import logging,os,time,random
 import sys,getopt
@@ -414,7 +414,7 @@ def usernickename():
                 # status -3 json的value错误。
                 return json.dumps({"id": id, "status": -3, "message": "Error data key", "data": {}})
             user_id = data['user_id']
-            json_dict = MySQL.GetUserNicknaem(user_id=user_id,id=id)
+            json_dict = MySQL.GetUserNickname(user_id=user_id,id=id)
             return json.dumps(json_dict)
         else:
             # status -2 json的value错误。
