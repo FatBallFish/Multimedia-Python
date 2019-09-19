@@ -12,7 +12,7 @@ import re
 
 Lock = Lock()
 log_mysql = logging.getLogger("MySql")
-lock = threading.Lock()
+
 def Initialize(cfg_path:str,main_path:str):
     """
     初始化 Pymsql 模块
@@ -216,7 +216,7 @@ def Register(phone:str,password:str)->tuple:
             conn.commit()
             Lock.release()
         except Exception as e:
-            # conn.rollback()
+            conn.rollback()
             cur.close()
             print("Failed to execute sql:{}|{}".format(sql, e))
             log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
@@ -271,7 +271,7 @@ def ForgetPass(phone:str,password:str,id:int=-1)->dict:
         print("Failed to execute sql:{}|{}".format(sql, e))
         log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
         Auto_KeepConnect()
-        # status -200 sql执行失败
+        # status Failure to operate database sql语句错误
         return {"id":id,"status":-200,"message":"Failure to operate database","data":{}}
     if num == 1:
         # status 0 执行成功s
@@ -365,7 +365,7 @@ def AddToken(phone:str,enduring:int=0)->str:
             conn.commit()
             Lock.release()
         except Exception as e:
-            # conn.rollback()
+            conn.rollback()
             cur.close()
             print("Failed to execute sql:{}|{}".format(sql, e))
             log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
@@ -392,6 +392,7 @@ def RefreshToken(token:str)->bool:
         Lock.release()
         cur.close()
     except Exception as e:
+        conn.rollback()
         cur.close()
         print("Failed to execute sql:{}|{}".format(sql, e))
         log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
@@ -489,7 +490,6 @@ def Auto_KeepConnect():
     timer = Timer(600, Auto_KeepConnect)
     timer.start()
 
-
 def UpdataUserInfo(phone:str,info:dict,id:int=-1)->dict:
     """
 Update user info ,return json dict,include id,status,message,data
@@ -515,7 +515,7 @@ Update user info ,return json dict,include id,status,message,data
         print("Failed to execute sql:{}|{}".format(sql, e))
         log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
         Auto_KeepConnect()  # 尝试一下当sql出错后自动重连
-        # status -200 Execute sql failed sql语句错误
+        # status -200 Failure to operate database sql语句错误
         return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
     cur.close()
     # status 0 Successful 成功！
@@ -602,6 +602,34 @@ def GetUserNickname(user_id:str,id:int=-1)->dict:
         # status 200 Unkonwn user info Error 同一phone大于2条
         return {"id": id, "status": 200, "message": "Unkonwn user info Error", "data": {}}
 
+def GetUserNickname2(user_id:str)->str:
+    cur = conn.cursor()
+    sql = "SELECT nickname FROM usersinfo WHERE phone = '{}'".format(user_id)
+    try:
+        Lock.acquire(GetUserNickname2,"GetUserNickname2")
+        num = cur.execute(sql)
+        Lock.release()
+        # conn.commit()
+    except Exception as e:
+        # conn.rollback()
+        cur.close()
+        print("Failed to execute sql:{}|{}".format(sql, e))
+        log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
+        Auto_KeepConnect()  # 尝试一下当sql出错后自动重连
+        # status -200 Get user info failed sql语句错误
+        return ""
+    if num == 0:
+        cur.close()
+        # status 1 user not existed phone不存在
+        return ""
+    elif num == 1:
+        row = cur.fetchone()
+        return row[0]
+    else:
+        cur.close()
+        # status 200 Unkonwn user info Error 同一phone大于2条
+        return ""
+
 def AddArticle(user_id:str,title:str,content:str,id:int=-1)->dict:
     """
 Add an article to bbs,return json dict ,include id,status,message,data
@@ -647,7 +675,9 @@ get an article's owner user_id.
     cur = conn.cursor()
     sql = "SELECT user_id FROM bbs_article WHERE article_id = {}".format(article_id)
     try:
+        Lock.acquire(GetArticleOwner,"GetArticleOwner")
         num = cur.execute(sql)
+        Lock.release()
         # conn.commit()
     except Exception as e:
         # conn.rollback()
@@ -674,7 +704,9 @@ check article id whether existed , if yes return True,not return False
     cur = conn.cursor()
     sql = "SELECT COUNT(article_id) AS num FROM bbs_article WHERE article_id = {}".format(article_id)
     try:
+        Lock.acquire(CheckArticleIfExist)
         cur.execute(sql)
+        Lock.release()
         # conn.commit()
     except Exception as e:
         # conn.rollback()
@@ -723,7 +755,7 @@ Update an article info,return json dict ,include id,status,message,data
         print("Failed to execute sql:{}|{}".format(sql, e))
         log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
         Auto_KeepConnect()
-        # status -200 Execute sql failed sql语句错误
+        # status -200 Failure to operate database sql语句错误
         return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
     cur.close()
     if num == 1:
@@ -757,7 +789,7 @@ Delete an article
         conn.commit()
         Lock.release()
     except Exception as e:
-        # conn.rollback()
+        conn.rollback()
         cur.close()
         print("Failed to execute sql:{}|{}".format(sql, e))
         log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
@@ -850,6 +882,7 @@ article_id、title、content可交集查询；
         article_dict = {}
         article_dict["article_id"] = row[0]
         article_dict["user_id"] = row[1]
+        article_dict["nickename"] = GetUserNickname2(row[1])
         article_dict["title"] = row[2]
         article_dict["content"] = row[3]
         article_dict["create_time"] = str(row[4])
@@ -873,7 +906,9 @@ check comment id whether existed , if yes return True,not return False
     cur = conn.cursor()
     sql = "SELECT COUNT(comment_id) AS num FROM bbs_comment WHERE comment_id = '{}'".format(comment_id)
     try:
+        Lock.acquire(CheckCommentIfExist,"CheckCommentIfExist")
         cur.execute(sql)
+        Lock.release()
         # conn.commit()
     except Exception as e:
         # conn.rollback()
@@ -919,7 +954,7 @@ Add a comment to an article,return article_id and comment_id
         Lock.release()
         cur.close()
     except Exception as e:
-        # conn.rollback()
+        conn.rollback()
         cur.close()
         print("Failed to execute sql:{}|{}".format(sql, e))
         log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
@@ -943,7 +978,9 @@ get an comment's owner user_id.
     cur = conn.cursor()
     sql = "SELECT user_id FROM bbs_comment WHERE comment_id = '{}'".format(comment_id)
     try:
+        Lock.acquire(GetCommentOwner,"GetCommentOwner")
         num = cur.execute(sql)
+        Lock.release()
         # conn.commit()
     except Exception as e:
         # conn.rollback()
@@ -994,7 +1031,7 @@ Update an comment info,return json dict ,include id,status,message,data
         print("Failed to execute sql:{}|{}".format(sql, e))
         log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
         Auto_KeepConnect()
-        # status -200 Execute sql failed sql语句错误
+        # status -200 Failure to operate database sql语句错误
         return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
     cur.close()
     if num == 1:
@@ -1028,7 +1065,7 @@ Delete an comment
         conn.commit()
         Lock.release()
     except Exception as e:
-        # conn.rollback()
+        conn.rollback()
         cur.close()
         print("Failed to execute sql:{}|{}".format(sql, e))
         log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
@@ -1120,6 +1157,7 @@ def GetCommentList(article_id:int,comment_id:str,father_id:str,user_id:str,conte
         comment_dict["comment_id"] = row[1]
         comment_dict["father_id"] = row[2]
         comment_dict["user_id"] = row[3]
+        comment_dict["nickname"] = GetUserNickname2(row[3])
         comment_dict["content"] = row[4]
         comment_dict["create_time"] = str(row[5])
         comment_dict["update_time"] = str(row[6])
@@ -1163,7 +1201,7 @@ def AddActive(user_id:str,title:str,content:str,start_time:str,end_time:str,id:i
         Lock.release()
         cur.close()
     except Exception as e:
-        # conn.rollback()
+        conn.rollback()
         cur.close()
         print("Failed to execute sql:{}|{}".format(sql, e))
         log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
@@ -1186,7 +1224,9 @@ def CheckActiveIfExist(active_id:int)->bool:
     cur = conn.cursor()
     sql = "SELECT COUNT(active_id) as num FROM bbs_active WHERE active_id = {}".format(active_id)
     try:
+        Lock.acquire(CheckActiveIfExist,"CheckActiveIfExist")
         num = cur.execute(sql)
+        Lock.release()
         # conn.commit()
         cur.close()
     except Exception as e:
@@ -1215,7 +1255,9 @@ def CheckActiveIfJoin(active_id:int,user_id:str)->bool:
         return False
     sql = "SELECT COUNT(active_id) as num FROM active_users WHERE active_id = {} AND user_id = '{}'".format(active_id,user_id)
     try:
+        Lock.acquire(CheckActiveIfJoin,"CheckActiveIfJoin")
         num = cur.execute(sql)
+        Lock.release()
         # conn.commit()
         cur.close()
     except Exception as e:
@@ -1241,7 +1283,9 @@ get an active's owner user_id.
     cur = conn.cursor()
     sql = "SELECT user_id FROM bbs_active WHERE active_id = {}".format(active_id)
     try:
+        Lock.acquire(GetActiveOwner,"GetActiveOwner")
         num = cur.execute(sql)
+        Lock.release()
         # conn.commit()
     except Exception as e:
         # conn.rollback()
@@ -1308,7 +1352,7 @@ def UpateActive(active_id:int,user_id:str,title:str,content:str,start_time:str,e
         Lock.release()
         cur.close()
     except Exception as e:
-        # conn.rollback()
+        conn.rollback()
         cur.close()
         print("Failed to execute sql:{}|{}".format(sql, e))
         log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
@@ -1346,7 +1390,7 @@ def DeleteActive(user_id:str,active_id:int,id:int=-1)->dict:
         Lock.release()
         cur.close()
     except Exception as e:
-        # conn.rollback()
+        conn.rollback()
         cur.close()
         print("Failed to execute sql:{}|{}".format(sql, e))
         log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
@@ -1435,7 +1479,7 @@ def ExitActive(active_id:int,user_id:str,id:int=-1):
         # status -200 Execute sql failed sql语句错误
         return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
 
-def GetActiveList(keywords:str,active_id:int,user_id:str,title:str,content:str,order:str,start:int,num:int,id:int=-1)->dict:
+def GetActiveList(keywords:str,active_id:int,user_id:str,title:str,content:str,order:str,start:int,num:int,mode:int=0,id:int=-1)->dict:
     """
 获取活动列表。
 如果keywords不为空则优先使用keywords，active_id、title、content则被忽略；keywords用于title和content的并集查询，模糊匹配；
@@ -1448,6 +1492,7 @@ active_id、title、content可交集查询；
     :param order: 排序规则，使用SQL语句，为空则默认以更新时间进行排序
     :param start: 起始索引，默认为0
     :param num: 获取记录数，默认为50
+    :param mode: 文本返回模式，1为全文模式，0为精简模式
     :param id: 请求事件id
     :return:
     """
@@ -1513,12 +1558,19 @@ active_id、title、content可交集查询；
     for row in rows:
         active_dict["active_id"] = row[0]
         active_dict["user_id"] = row[1]
+        active_dict["nickname"] = GetUserNickname2(row[1])
         active_dict["title"] = row[2]
         active_dict["content"] = row[3]
         active_dict["start_time"] = str(row[4])
         active_dict["end_time"] = str(row[5])
         active_dict["create_time"] = str(row[6])
         active_dict["update_time"] = str(row[7])
+        if mode == 1:
+            searchObj  = re.search("<p>(.*?)<",active_dict["content"])
+            if searchObj != None:
+                text = searchObj.group(1)
+                text = text.replace("&nbsp;", "")
+                active_dict["content"] = text
         active_list.append(active_dict)
     # status 0 successful
     return {"id": id, "status": 0, "message": "successful", "data": {"num": row_num, "list": active_list}}
@@ -1573,6 +1625,58 @@ def GetActiveMember(active_id:int,order:str,start:int,num:int,id:int=-1)->dict:
         mumber_list.append(row[0])
     # status 0 successful
     return {"id": id, "status": 0, "message": "successful", "data": {"num": row_num, "list": mumber_list}}
+
+def AdminCheck(phone:str)->bool:
+    cur = conn.cursor()
+    sql = "SELECT `group` FROM users WHERE phone = '{}'".format(phone)
+    try:
+        Lock.acquire(AdminCheck,"AdminCheck")
+        row_num = cur.execute(sql)
+        Lock.release()
+        # conn.commit()
+    except Exception as e:
+        # conn.rollback()
+        cur.close()
+        print("Failed to execute sql:{}|{}".format(sql, e))
+        log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
+        Auto_KeepConnect()
+        return False
+    if row_num == 1:
+        group = cur.fetchone()[0]
+        if group == "__ADMIN__":
+            return True
+        else:
+            return False
+    else:
+        return False
+
+def AdminUserList(id:int=-1)->dict:
+    cur = conn.cursor()
+    sql = "SELECT phone,`name`,nickname,email,`level` FROM usersinfo"
+    try:
+        Lock.acquire(AdminUserList, "AdminUserList")
+        row_num = cur.execute(sql)
+        Lock.release()
+        # conn.commit()
+    except Exception as e:
+        # conn.rollback()
+        cur.close()
+        print("Failed to execute sql:{}|{}".format(sql, e))
+        log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
+        Auto_KeepConnect()
+        # status -200 Execute sql failed sql语句错误
+        return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
+    rows = cur.fetchall()
+    user_list = []
+    for row in rows:
+        user_dict = {}
+        user_dict["phone"] = row[0]
+        user_dict["name"] = row[1]
+        user_dict["nickname"] = row[2]
+        user_dict["email"] = row[3]
+        user_dict["level"] = row[4]
+        user_list.append(user_dict)
+    return {"id":id,"status":0,"message":"successful","data":user_list}
 
 if __name__ == '__main__':
     Initialize()

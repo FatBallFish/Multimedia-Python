@@ -1,4 +1,6 @@
 import time
+import logging
+log_lock = logging.getLogger(__name__)
 class Lock():
     Lock = False
     lock_def = None
@@ -13,6 +15,8 @@ class Lock():
     def acquire(self,lock_def:object=None,lock_text:str="")->bool:
         time_js = 0
         while self.Lock:
+            print("Locking:{}".format(self.lock_text))
+            log_lock.info("Locking:{}".format(self.lock_text))
             if self.timeout != -1:
                 if time_js >= self.timeout:
                     if self.timeout_def != None:

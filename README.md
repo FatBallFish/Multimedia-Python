@@ -530,7 +530,7 @@
 
 > **API地址：**
 
-**https://dmt.lcworkroom.cn/api/user/password
+**https://dmt.lcworkroom.cn/api/user/password**
 
 > **POST发送请求的json文本**
 
@@ -1368,31 +1368,37 @@
 
 > **API类型**
 
-**请求类型：`GET`**
+**请求类型：`GET、POST`**
+
+两个请求功能一致，就是参数传递方式不一样。
+
+token只能传在url中
 
 > **API地址：**
 
 **https://dmt.lcworkroom.cn/api/get/article/list**
 
-> **url 参数表**
+> **参数表**
 
 |    参数    | 可否为空 | 可否缺省 | 数据类型 | 字段长度 | 默认值           |               例子               |                             备注                             |
 | :--------: | :------: | :------: | :------: | :------: | ---------------- | :------------------------------: | :----------------------------------------------------------: |
 |   token    |          |          |  string  |    32    |                  | debc454ea24827b67178482fd73f37c3 |                      由登录api返回获得                       |
 |  keywords  |    √     |    √     |  string  |          |                  |               测试               | 搜索关键字，设置后将以此关键字模糊匹配title和content字段内容，模糊匹配 |
 | article_id |    √     |    √     |   int    |    10    |                  |            1565926081            |                       文章id，精确匹配                       |
+|  user_id   |    √     |    √     |  string  |    11    |                  |           13750687010            |                       用户id，精确匹配                       |
 |   title    |    √     |    √     |  string  |          |                  |             测试文章             |                      文章标题，模糊匹配                      |
 |  content   |    √     |    √     |  string  |          |                  |               这是               |                      文章内容，模糊匹配                      |
 |   order    |    √     |    √     |  string  |          | update_time DESC |    title ASC,update_time DESC    |     排序规则，使用SQL语句，为空则默认以更新时间进行排序      |
 |   start    |    √     |    √     |   int    |          | 0                |                0                 |                  记录索引开始，默认起始为 0                  |
 |    num     |    √     |    √     |   int    |          | 50               |                10                |                   返回记录数，默认返回50条                   |
+|    mode    |          |    √     |   int    |          | 0                |                0                 |      0为显示文章源格式，1为文章简介，自动返回第一行文字      |
 
 > ## 注意
 
 - 只传递`token`参数则返回所有文章
 - 如果`keywords`不为空则优先使用`keywords`，`article_id`、`title`、`content`则被忽略；
 - `keywords`用于`title`和`content`的并集查询，模糊匹配；
-- `article_id`、`title`、`content`可交集查询；
+- `article_id`、`user_id`、`title`、`content`可交集查询；
 - `order`中可用于排序的字段有`article_id`, `user_id`, `title`,`content`,`create_time`, `update_time`;
 - `order`排序方法有：升序`asc`、降序`desc`，大小写不区分。多条件排序时用英文半角`,`分割
 - 当实际记录数小于`num`的值时，只返回实际记录数量的记录
@@ -1730,13 +1736,17 @@
 
 > **API类型**
 
-**请求类型：`GET`**
+**请求类型：`GET、POST`**
+
+两个请求功能一致，就是参数传递方式不一样。
+
+token只能传在url中
 
 > **API地址：**
 
 **https://dmt.lcworkroom.cn/api/get/comment/list**
 
-> **url 参数表**
+> **参数表**
 
 |    参数    | 可否为空 | 可否缺省 | 数据类型 | 字段长度 | 默认值           |               例子               |                        备注                         |
 | :--------: | :------: | :------: | :------: | :------: | ---------------- | :------------------------------: | :-------------------------------------------------: |
@@ -2100,13 +2110,17 @@
 
 > **API类型**
 
-**请求类型：`GET`**
+**请求类型：`GET、POST`**
+
+两个请求功能一致，就是参数传递方式不一样。
+
+token只能传在url中
 
 > **API地址：**
 
 **https://dmt.lcworkroom.cn/api/get/active/list**
 
-> **url 参数表**
+> **参数表**
 
 |   参数    | 可否为空 | 可否缺省 | 数据类型 | 字段长度 | 默认值           |               例子               |                             备注                             |
 | :-------: | :------: | :------: | :------: | :------: | ---------------- | :------------------------------: | :----------------------------------------------------------: |
@@ -2119,6 +2133,7 @@
 |   order   |    √     |    √     |  string  |          | update_time DESC |    title ASC,update_time DESC    |     排序规则，使用SQL语句，为空则默认以更新时间进行排序      |
 |   start   |    √     |    √     |   int    |          | 0                |                0                 |                  记录索引开始，默认起始为 0                  |
 |    num    |    √     |    √     |   int    |          | 50               |                10                |                   返回记录数，默认返回50条                   |
+|   mode    |          |    √     |   int    |          | 0                |                0                 |      0为显示文章源格式，1为文章简介，自动返回第一行文字      |
 
 > ## 注意
 
@@ -2357,13 +2372,17 @@
 
 > **API类型**
 
-**请求类型：`GET`**
+**请求类型：`GET、POST`**
+
+两个请求功能一致，就是参数传递方式不一样。
+
+token只能传在url中
 
 > **API地址：**
 
 **https://dmt.lcworkroom.cn/api/get/active/member**
 
-> **url 参数表**
+> **参数表**
 
 |   参数    | 可否为空 | 可否缺省 | 数据类型 | 字段长度 | 默认值           |               例子               |                        备注                         |
 | :-------: | :------: | :------: | :------: | :------: | ---------------- | :------------------------------: | :-------------------------------------------------: |
@@ -2428,6 +2447,121 @@
 | 100    | Error Order     | 排序规则错误 |
 | 102    | Error active_id | 错误的活动id |
 
+## **管理员类**
+
+#### 获取用户列表
+
+> **API说明**
+
+此API获取所有用户列表，仅管理员权限用户可用
+
+成功返回token值
+
+> **API类型**
+
+**请求类型：`POST`**
+
+> **API地址：**
+
+**https://dmt.lcworkroom.cn/api/admin/user?token=**
+
+> **url 参数表**
+
+| 参数  | 可否为空 | 可否缺省 | 数据类型 | 字段长度 |               例子               |              备注              |
+| :---: | :------: | :------: | :------: | :------: | :------------------------------: | :----------------------------: |
+| token |          |          |  string  |    32    | debc454ea24827b67178482fd73f37c3 | 由登录api返回获得，管理员token |
+
+> **POST发送请求的json文本**
+
+```python
+{
+    "id":1234,
+    "type":"user",
+    "subtype":"list",
+    "data":{}
+}
+```
+
+> **Python端返回成功处理情况**
+
+```python
+{
+    "id": 0, 
+    "status": 0, 
+    "message": "successful", 
+    "data": [
+        {
+            "phone": "13566284913", 
+            "name": "\u8bb8\u6df3\u7693", 
+            "nickname": "\u8bb8\u5927\u5e05\u54e5", 
+            "email": "1010549831@qq.com", 
+            "level": 1}, 
+        {
+            "phone": "13750687010", 
+            "name": "\u738b\u51cc\u8d85", 
+            "nickname": "FatBallFish", 
+            "email": "893721708@qq.com", 
+            "level": 1}, 
+        {
+            "phone": "15857174214", 
+            "name": null, 
+            "nickname": null, 
+            "email": null, 
+            "level": 1}, 
+        {
+            "phone": "15925868186", 
+            "name": null, 
+            "nickname": null, 
+            "email": null, 
+            "level": 1}, 
+        {
+            "phone": "17767174231", 
+            "name": null, 
+            "nickname": null, 
+            "email": null, 
+            "level": 1}, 
+        {
+            "phone": "17816064319", 
+            "name": "\u94b1\u4e39", 
+            "nickname": "\u86cb\u86cb", 
+            "email": "3391791582@qq.com", 
+            "level": 1}, 
+        {
+            "phone": "19857160634", 
+            "name": null, 
+            "nickname": null,
+            "email": null, 
+            "level": 1}
+    ]
+}
+
+```
+
+> **Python端返回失败处理情况**
+
+```python
+{
+     "id":1234,
+     "status":-103,  #错误码
+     "message":"No permission to operate",
+     "data":{},
+}
+```
+
+> **所用到的全局status**
+
+全局参数详情请看[全局Status表](#全局Status表)
+
+| status |
+| ------ |
+| -200   |
+| -103   |
+| -101   |
+| -100   |
+| -3     |
+| -2     |
+| -1     |
+
 ## **全局Status表**
 
 **所有的全局status值皆小于0**
@@ -2444,6 +2578,7 @@
 | -100 |       Missing necessary args       |       api地址中缺少token参数        | POST、GET |
 | -101 |            Error token             |             token不正确             | POST、GET |
 | -102 |  Get userid failed for the token   |      使用该token获取userid失败      | POST、GET |
+| -103 |      No permission to operate      |            用户无权操作             | POST      |
 | -200 |    Failure to operate database     | 数据库操作失败，检查SQL语句是否正确 | POST、GET |
 | -201 | Necessary key-value can't be empty |        关键键值对值不可为空         | POST      |
 | -202 |  Missing necessary data key-value  |          缺少关键的键值对           | POST      |
