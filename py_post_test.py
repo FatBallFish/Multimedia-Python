@@ -213,7 +213,7 @@ headers = {'content-type': "application/json"}
 # #       "subtype":"list",
 # #       "data":{"user_id":"13750687010"}}
 # # token = "99c9150238fa21051f558ceccad55b8a"
-# # # response = requests.post(url="https://dmt.lcworkroom.cn/api/admin/user?token={}".format(token),data=json.dumps(data),headers=headers)
+# # # response = requests.post(url="https://dmt.lcworkroom.cn/api/admin/article?token={}".format(token),data=json.dumps(data),headers=headers)
 # # response = requests.post(url="http://127.0.0.1:8765/admin/article?token={}".format(token),data=json.dumps(data),headers=headers)
 
 # # 增加文章（管理员）
@@ -222,7 +222,7 @@ headers = {'content-type': "application/json"}
 # #       "subtype":"add",
 # #       "data":{"user_id":"13566284913","content":"管理员增加内容","title":"管理员增加标题"}}
 # # token = "99c9150238fa21051f558ceccad55b8a"
-# # # response = requests.post(url="https://dmt.lcworkroom.cn/api/admin/user?token={}".format(token),data=json.dumps(data),headers=headers)
+# # # response = requests.post(url="https://dmt.lcworkroom.cn/api/admin/article?token={}".format(token),data=json.dumps(data),headers=headers)
 # # response = requests.post(url="http://127.0.0.1:8765/admin/article?token={}".format(token),data=json.dumps(data),headers=headers)
 
 # # 更新文章信息（管理员）
@@ -231,15 +231,51 @@ headers = {'content-type': "application/json"}
 #       "subtype":"update",
 #       "data":{"user_id":"13566284913","article_id":13566284913,"content":"管理员修改内容","title":"管理员修改标题"}}
 # token = "99c9150238fa21051f558ceccad55b8a"
-# # response = requests.post(url="https://dmt.lcworkroom.cn/api/admin/user?token={}".format(token),data=json.dumps(data),headers=headers)
+# # response = requests.post(url="https://dmt.lcworkroom.cn/api/admin/article?token={}".format(token),data=json.dumps(data),headers=headers)
 # response = requests.post(url="http://127.0.0.1:8765/admin/article?token={}".format(token),data=json.dumps(data),headers=headers)
 
-# 删除文章（管理员）
+# # 删除文章（管理员）
+# data={"id":0,
+#       "type":"article",
+#       "subtype":"delete",
+#       "data":{"user_id":"13566284913","article_id":1568962356}}
+# token = "99c9150238fa21051f558ceccad55b8a"
+# # response = requests.post(url="https://dmt.lcworkroom.cn/api/admin/article?token={}".format(token),data=json.dumps(data),headers=headers)
+# response = requests.post(url="http://127.0.0.1:8765/admin/article?token={}".format(token),data=json.dumps(data),headers=headers)
+
+# # 获取评论列表（管理员）
+# data={"id":0,
+#       "type":"comment",
+#       "subtype":"list",
+#       "data":{"user_id":"13750687010","article_id":1568546112}}
+# token = "99c9150238fa21051f558ceccad55b8a"
+# # response = requests.post(url="https://dmt.lcworkroom.cn/api/admin/comment?token={}".format(token),data=json.dumps(data),headers=headers)
+# response = requests.post(url="http://127.0.0.1:8765/admin/comment?token={}".format(token),data=json.dumps(data),headers=headers)
+
+# # 增加评论（管理员）
+# data={"id":0,
+#       "type":"comment",
+#       "subtype":"add",
+#       "data":{"user_id":"13750687010","article_id":1568546112,"content":"管理员添加评论"}}
+# token = "99c9150238fa21051f558ceccad55b8a"
+# # response = requests.post(url="https://dmt.lcworkroom.cn/api/admin/comment?token={}".format(token),data=json.dumps(data),headers=headers)
+# response = requests.post(url="http://127.0.0.1:8765/admin/comment?token={}".format(token),data=json.dumps(data),headers=headers)
+
+# # 更新评论（管理员）
+# data={"id":0,
+#       "type":"comment",
+#       "subtype":"update",
+#       "data":{"user_id":"13750687010","comment_id":"f1570b37d305c0b330d2e72fd04fd487","content":"管理员更新评论"}}
+# token = "99c9150238fa21051f558ceccad55b8a"
+# # response = requests.post(url="https://dmt.lcworkroom.cn/api/admin/comment?token={}".format(token),data=json.dumps(data),headers=headers)
+# response = requests.post(url="http://127.0.0.1:8765/admin/comment?token={}".format(token),data=json.dumps(data),headers=headers)
+
+# 删除评论（管理员）
 data={"id":0,
-      "type":"article",
+      "type":"comment",
       "subtype":"delete",
-      "data":{"user_id":"13566284913","article_id":1568962356}}
+      "data":{"user_id":"13750687010","comment_id":"f1570b37d305c0b330d2e72fd04fd487"}}
 token = "99c9150238fa21051f558ceccad55b8a"
-# response = requests.post(url="https://dmt.lcworkroom.cn/api/admin/user?token={}".format(token),data=json.dumps(data),headers=headers)
-response = requests.post(url="http://127.0.0.1:8765/admin/article?token={}".format(token),data=json.dumps(data),headers=headers)
+# response = requests.post(url="https://dmt.lcworkroom.cn/api/admin/comment?token={}".format(token),data=json.dumps(data),headers=headers)
+response = requests.post(url="http://127.0.0.1:8765/admin/comment?token={}".format(token),data=json.dumps(data),headers=headers)
 print(response.text)
