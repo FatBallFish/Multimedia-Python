@@ -778,12 +778,13 @@ check article id whether existed , if yes return True,not return False
     else:
         return False
 
-def UpdateArticle(user_id:str,article_id:int,content:str,id:int=-1)->dict:
+def UpdateArticle(user_id:str,article_id:int,content:str,title:str="",id:int=-1)->dict:
     """
 Update an article info,return json dict ,include id,status,message,data
     :param user_id: username,default phone number
     :param article_id: article's id,using find article which will be edited
     :param content: article's content
+    :param title: articles's title , only administrator can use it.
     :param id: request event's id ,using on event handling
     :return: json dict ,include id,status,message,data
     """
@@ -798,8 +799,12 @@ Update an article info,return json dict ,include id,status,message,data
         return {"id":id,"status":101,"message":"Error user_id","data":""}
 
     update_time = time.strftime("%Y:%m:%d %H:%M:%S",time.localtime())
-    sql = "UPDATE bbs_article SET content = '{}',update_time = '{}' " \
-          "WHERE article_id = {} AND user_id = '{}'".format(content,update_time,article_id,user_id)
+    if title != "":
+        sql = "UPDATE bbs_article SET title = '{}',content = '{}',update_time = '{}' " \
+              "WHERE article_id = {} AND user_id = '{}'".format(title,content, update_time, article_id, user_id)
+    else:
+        sql = "UPDATE bbs_article SET content = '{}',update_time = '{}' " \
+              "WHERE article_id = {} AND user_id = '{}'".format(content,update_time,article_id,user_id)
     try:
         Lock.acquire(UpdateArticle,"UpdateArticle")
         num = cur.execute(sql)

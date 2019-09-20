@@ -206,11 +206,39 @@ headers = {'content-type': "application/json"}
 # token = "99c9150238fa21051f558ceccad55b8a"
 # # response = requests.post(url="https://dmt.lcworkroom.cn/api/admin/user?token={}".format(token),data=json.dumps(data),headers=headers)
 # response = requests.post(url="http://127.0.0.1:8765/admin/user?token={}".format(token),data=json.dumps(data),headers=headers)
-# 获取文章列表（管理员）
+
+# # 获取文章列表（管理员）
+# # data={"id":0,
+# #       "type":"article",
+# #       "subtype":"list",
+# #       "data":{"user_id":"13750687010"}}
+# # token = "99c9150238fa21051f558ceccad55b8a"
+# # # response = requests.post(url="https://dmt.lcworkroom.cn/api/admin/user?token={}".format(token),data=json.dumps(data),headers=headers)
+# # response = requests.post(url="http://127.0.0.1:8765/admin/article?token={}".format(token),data=json.dumps(data),headers=headers)
+
+# # 增加文章（管理员）
+# # data={"id":0,
+# #       "type":"article",
+# #       "subtype":"add",
+# #       "data":{"user_id":"13566284913","content":"管理员增加内容","title":"管理员增加标题"}}
+# # token = "99c9150238fa21051f558ceccad55b8a"
+# # # response = requests.post(url="https://dmt.lcworkroom.cn/api/admin/user?token={}".format(token),data=json.dumps(data),headers=headers)
+# # response = requests.post(url="http://127.0.0.1:8765/admin/article?token={}".format(token),data=json.dumps(data),headers=headers)
+
+# # 更新文章信息（管理员）
+# data={"id":0,
+#       "type":"article",
+#       "subtype":"update",
+#       "data":{"user_id":"13566284913","article_id":13566284913,"content":"管理员修改内容","title":"管理员修改标题"}}
+# token = "99c9150238fa21051f558ceccad55b8a"
+# # response = requests.post(url="https://dmt.lcworkroom.cn/api/admin/user?token={}".format(token),data=json.dumps(data),headers=headers)
+# response = requests.post(url="http://127.0.0.1:8765/admin/article?token={}".format(token),data=json.dumps(data),headers=headers)
+
+# 删除文章（管理员）
 data={"id":0,
       "type":"article",
-      "subtype":"list",
-      "data":{"user_id":"13750687010"}}
+      "subtype":"delete",
+      "data":{"user_id":"13566284913","article_id":1568962356}}
 token = "99c9150238fa21051f558ceccad55b8a"
 # response = requests.post(url="https://dmt.lcworkroom.cn/api/admin/user?token={}".format(token),data=json.dumps(data),headers=headers)
 response = requests.post(url="http://127.0.0.1:8765/admin/article?token={}".format(token),data=json.dumps(data),headers=headers)

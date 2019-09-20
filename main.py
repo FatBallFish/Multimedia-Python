@@ -1605,30 +1605,37 @@ def admin_article():
                                              content=content, order=order, start=start, num=num, mode=mode)
             return json.dumps(json_dict)
         if subtype == "add":
-            for key in ["title", "content"]:
+            for key in ["title", "content","user_id"]:
                 if key not in data.keys():
                     # status -3 json的value错误。
                     return json.dumps({"id": id, "status": -3, "message": "Error data key", "data": {}})
             title = data["title"]
             content = data["content"]
-            json_dict = MySQL.AddArticle(user_id=username, title=title, content=content, id=id)
+            user_id = data["user_id"]
+            json_dict = MySQL.AddArticle(user_id=user_id, title=title, content=content, id=id)
             return json.dumps(json_dict)
         elif subtype == "update":
-            for key in ["article_id", "content"]:
+            for key in ["article_id","content","user_id"]:
                 if key not in data.keys():
                     # status -3 json的value错误。
                     return json.dumps({"id": id, "status": -3, "message": "Error data key", "data": {}})
             article_id = data["article_id"]
             content = data["content"]
-            json_dict = MySQL.UpdateArticle(user_id=username, article_id=article_id, content=content, id=id)
+            if "title" in data.keys():
+                title = data["title"]
+            else:
+                title = ""
+            user_id = data["user_id"]
+            json_dict = MySQL.UpdateArticle(user_id=user_id,title=title,article_id=article_id, content=content, id=id)
             return json.dumps(json_dict)
         elif subtype == "delete":
-            for key in ["article_id"]:
+            for key in ["article_id","user_id"]:
                 if key not in data.keys():
                     # status -3 json的value错误。
                     return json.dumps({"id": id, "status": -3, "message": "Error data key", "data": {}})
             article_id = data["article_id"]
-            json_dict = MySQL.DeleteArticle(user_id=username, article_id=article_id, id=id)
+            user_id = data["user_id"]
+            json_dict = MySQL.DeleteArticle(user_id=user_id, article_id=article_id, id=id)
             return json.dumps(json_dict)
 
 
