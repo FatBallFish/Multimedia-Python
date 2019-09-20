@@ -521,16 +521,67 @@ Update user info ,return json dict,include id,status,message,data
     # status 0 Successful 成功！
     return {"id": id, "status": 0, "message": "Successful", "data": {}}
 
-def GetUserInfo(token:str,id:int=-1)->dict:
+def DeleteUser(phone:str,id:int=-1)->dict:
+    """
+删除用户，同时删除usersinfo,users,tokens里相关信息
+    :param phone: 用户id
+    :return:
+    """
+    cur = conn.cursor()
+    sql = "DELETE usersinfo,users FROM usersinfo,users WHERE usersinfo.phone = '{0}' AND users.phone = '{0}'".format(phone)
+    try:
+        Lock.acquire(DeleteUser,"DeleteUser")
+        num = cur.execute(sql)
+        conn.commit()
+        Lock.release()
+    except Exception as e:
+        conn.rollback()
+        cur.close()
+        print("Failed to execute sql:{}|{}".format(sql, e))
+        log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
+        Auto_KeepConnect()  # 尝试一下当sql出错后自动重连
+        # status -200 Get user info failed sql语句错误
+        return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
+    if num != 2:
+        # status -200 Get user info failed sql语句错误
+        return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
+
+    sql = "DELETE FROM tokens WHERE phone = '{}'".format(phone)
+    try:
+        Lock.acquire(DeleteUser,"DeleteUser")
+        num = cur.execute(sql)
+        conn.commit()
+        Lock.release()
+    except Exception as e:
+        conn.rollback()
+        cur.close()
+        print("Failed to execute sql:{}|{}".format(sql, e))
+        log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
+        Auto_KeepConnect()  # 尝试一下当sql出错后自动重连
+        # status -200 Get user info failed sql语句错误
+        return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
+    if num > 0:
+        # status 0 successful 成功处理事件
+        return {"id":id,"status":0,"message":"successful","data":{}}
+    else:
+        # status -200 Get user info failed sql语句错误
+        return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
+
+def GetUserInfo(token:str="",user_id:str="",id:int=-1)->dict:
     """
     获取用户信息，返回json字典
-    :param token:
+    :param token: 用户token
+    :param user_id: 用户id，此模块仅管理员用户有效
     :return: 直接返回json字典
     """
-    result,phone = Doki2(token)
-    if result == False:
-        # status 1 Error Token Token错误
-        return {"id": id, "status": 1, "message": "Error Token","data":{}}
+    if user_id == "":  # 判断查询方式，传user_id仅为管理员模式有效
+        result,phone = Doki2(token)
+        if result == False:
+            # status 1 Error Token Token错误
+            return {"id": id, "status": 1, "message": "Error Token","data":{}}
+    else:
+        phone = user_id
+
     cur = conn.cursor()
     sql = "SELECT * FROM usersinfo WHERE phone = '{}'".format(phone)
     try:
@@ -603,6 +654,11 @@ def GetUserNickname(user_id:str,id:int=-1)->dict:
         return {"id": id, "status": 200, "message": "Unkonwn user info Error", "data": {}}
 
 def GetUserNickname2(user_id:str)->str:
+    """
+只返回用户昵称，不返回json_dict
+    :param user_id: 用户id
+    :return: 返回用户昵称
+    """
     cur = conn.cursor()
     sql = "SELECT nickname FROM usersinfo WHERE phone = '{}'".format(user_id)
     try:
@@ -882,7 +938,7 @@ article_id、title、content可交集查询；
         article_dict = {}
         article_dict["article_id"] = row[0]
         article_dict["user_id"] = row[1]
-        article_dict["nickename"] = GetUserNickname2(row[1])
+        article_dict["nickname"] = GetUserNickname2(row[1])
         article_dict["title"] = row[2]
         article_dict["content"] = row[3]
         article_dict["create_time"] = str(row[4])

@@ -837,8 +837,6 @@
 
 此API用于更新用户信息
 
-成功返回token值
-
 > **API类型**
 
 **请求类型：`POST`**
@@ -1419,6 +1417,7 @@ token只能传在url中
         "list": [
             {"article_id": 1565926081, 
              "user_id": "13750687010", 
+             "nickename": "FatBallFish",
              "title": "测试文章", 
              "content": "这是一篇测试文章", 
              "create_time": "2019-08-16 11:28:01", 
@@ -1787,6 +1786,7 @@ token只能传在url中
                 "comment_id": "76bd7b76fcd0b23f3d171f39b416d936", 
                 "father_id": "", 
                 "user_id": "13750687010", 
+                "nickename": "FatBallFish",
                 "content": "这是一条更新过的评论", 
                 "create_time": "2019-08-18 09:41:41", 
                 "update_time": "2019-08-18 11:08:43"
@@ -1796,6 +1796,7 @@ token只能传在url中
                 "comment_id": "1aa6ddf68bea87f2305dd9fd5d3bb2c8", 
                 "father_id": "", 
                 "user_id": "13750687010", 
+                "nickename": "FatBallFish",
                 "content": "这是一条测试评论", 
                 "create_time": "2019-08-18 09:32:16", 
                 "update_time": "2019-08-18 09:32:16"
@@ -2161,6 +2162,7 @@ token只能传在url中
         "list": [
             {"active_id": 78554587, 
              "user_id": "13750687010", 
+             "nickename": "FatBallFish",
              "title": "校友召集令", 
              "content": "恰逢更名时机，召集校友来此一聚，更新活动内容", 
              "start_time": "2019-08-25 00:00:00", 
@@ -2449,13 +2451,13 @@ token只能传在url中
 
 ## **管理员类**
 
-#### 获取用户列表
+### 用户类
+
+#### 用户列表·获取
 
 > **API说明**
 
 此API获取所有用户列表，仅管理员权限用户可用
-
-成功返回token值
 
 > **API类型**
 
@@ -2561,6 +2563,356 @@ token只能传在url中
 | -3     |
 | -2     |
 | -1     |
+
+#### 用户信息·获取
+
+> **API说明**
+
+此API用于通过user_id值获取对应用户信息，仅管理员权限用户可用
+
+> **API类型**
+
+**请求类型：`POST`**
+
+> **API地址：**
+
+**https://dmt.lcworkroom.cn/api/admin/user?token=**
+
+> **url 参数表**
+
+| 参数  | 可否为空 | 可否缺省 | 数据类型 | 字段长度 |               例子               |       备注        |
+| :---: | :------: | :------: | :------: | :------: | :------------------------------: | :---------------: |
+| token |          |          |  string  |    32    | debc454ea24827b67178482fd73f37c3 | 由登录api返回获得 |
+
+> **POST发送请求的json文本**
+
+```python
+{
+    "id":0,
+    "type":"user",
+    "subtype":"info",
+    "data":{"phone":"13750687010"}
+}
+```
+
+> **data字段表**
+
+| 参数  | 可否为空 | 可否缺省 | 数据类型 | 字段长度 |    例子     |       备注       |
+| :---: | :------: | :------: | :------: | :------: | :---------: | :--------------: |
+| phone |          |          |  string  |    11    | 13750687010 | 登录账号(手机号) |
+
+> **Python端返回成功处理情况**
+
+```python
+{
+    "id": -1, 
+    "status": 0, 
+    "message": "Successful", 
+    "data": {
+        "phone": "13750687010", 
+        "name": "\u738b\u51cc\u8d85", 
+        "nickname": "FatBallFish", 
+        "email": "893721708@qq.com", 
+        "level": 1
+    }
+}
+```
+
+> **Python端返回失败处理情况**
+
+```python
+{
+    "id": -1, 
+    "status": 1, 
+    "message": "Error Token", 
+    "data": {}
+}
+```
+
+> **所用到的全局status**
+
+全局参数详情请看[全局Status表](#全局Status表)
+
+| status |
+| ------ |
+| -200   |
+| -103   |
+| -101   |
+| -100   |
+| -3     |
+| -2     |
+| -1     |
+
+#### 用户信息·更新
+
+> **API说明**
+
+此API用于更新用户信息，仅管理员权限用户可用
+
+> **API类型**
+
+**请求类型：`POST`**
+
+> **API地址：**
+
+**https://dmt.lcworkroom.cn/api/admin/user?token=**
+
+> **url 参数表**
+
+| 参数  | 可否为空 | 可否缺省 | 数据类型 | 字段长度 |               例子               |       备注        |
+| :---: | :------: | :------: | :------: | :------: | :------------------------------: | :---------------: |
+| token |          |          |  string  |    32    | debc454ea24827b67178482fd73f37c3 | 由登录api返回获得 |
+
+> **POST发送请求的json文本**
+
+```python
+{
+    "id":0,
+    "type":"user",
+    "subtype":"update",
+    "data":{
+        "phone":"13750687010",
+        "name":"王凌超",
+        "nickname":"FatBallFish",
+        "email":"893721708@qq.com"}
+}
+```
+
+> **data字段表**
+
+|   参数   | 可否为空 | 可否缺省 | 数据类型 | 字段长度 |               例子               |       备注       |
+| :------: | :------: | :------: | :------: | :------: | :------------------------------: | :--------------: |
+|  phone   |          |          |  string  |    11    |           13750687010            | 登录账号(手机号) |
+|   name   |    √     |    √     |  string  |    20    | cffb7f1eb316fd45bbfbd43082e36f9c |                  |
+| nickname |    √     |    √     |  string  |    20    |             wlc570Q0             |     登录密码     |
+|  email   |    √     |    √     |  string  |    50    |         893721708@qq.com         |     邮箱地址     |
+|  level   |          |    √     |   int    |          |                1                 |     用户等级     |
+
+> ## 注意
+
+- `phone`用作检验机制，不可被修改
+- `level`字段若被使用则必须传递数值，不能为空
+
+> **Python端返回成功处理情况**
+
+```python
+{
+    "id": 1234, 
+    "status": 0, 
+    "message": "Successful", 
+    "data": {}
+}
+```
+
+> **Python端返回失败处理情况**
+
+```python
+{
+     "id":1234,
+     "status":101,  #错误码
+     "message":"Phone number existed",
+     "data":{},
+}
+```
+
+> **所用到的全局status**
+
+全局参数详情请看[全局Status表](#全局Status表)
+
+| status |
+| ------ |
+| -200   |
+| -103   |
+| -101   |
+| -100   |
+| -3     |
+| -2     |
+| -1     |
+
+#### 用户·删除
+
+> **API说明**
+
+此API用于通过user_id值删除对应用户，仅管理员权限用户可用
+
+> **API类型**
+
+**请求类型：`POST`**
+
+> **API地址：**
+
+**https://dmt.lcworkroom.cn/api/admin/user?token=**
+
+> **url 参数表**
+
+| 参数  | 可否为空 | 可否缺省 | 数据类型 | 字段长度 |               例子               |       备注        |
+| :---: | :------: | :------: | :------: | :------: | :------------------------------: | :---------------: |
+| token |          |          |  string  |    32    | debc454ea24827b67178482fd73f37c3 | 由登录api返回获得 |
+
+> **POST发送请求的json文本**
+
+```python
+{
+    "id":0,
+    "type":"user",
+    "subtype":"delete",
+    "data":{"phone":"13750687010"}
+}
+```
+
+> **data字段表**
+
+| 参数  | 可否为空 | 可否缺省 | 数据类型 | 字段长度 |    例子     |       备注       |
+| :---: | :------: | :------: | :------: | :------: | :---------: | :--------------: |
+| phone |          |          |  string  |    11    | 13750687010 | 登录账号(手机号) |
+
+> **Python端返回成功处理情况**
+
+```python
+{
+    "id": -1, 
+    "status": 0, 
+    "message": "Successful", 
+    "data": {}
+}
+```
+
+> **Python端返回失败处理情况**
+
+```python
+{
+    "id": -1, 
+    "status": 1, 
+    "message": "Error Token", 
+    "data": {}
+}
+```
+
+> **所用到的全局status**
+
+全局参数详情请看[全局Status表](#全局Status表)
+
+| status |
+| ------ |
+| -200   |
+| -103   |
+| -101   |
+| -100   |
+| -3     |
+| -2     |
+| -1     |
+
+### 文章类
+
+#### 获取文章列表
+
+> **API说明**
+
+此API用于获取游客论坛文章列表
+
+获取单篇文章信息也用此api，传递一个article_id参数即可获取只有一个数据的列表
+
+> **API类型**
+
+**请求类型：`POST`**
+
+> **API地址：**
+
+**https://dmt.lcworkroom.cn/admin/article?token**
+
+> **url参数表**
+
+| 参数  | 可否为空 | 可否缺省 | 数据类型 | 字段长度 |               例子               |       备注        |
+| :---: | :------: | :------: | :------: | :------: | :------------------------------: | :---------------: |
+| token |          |          |  string  |    32    | debc454ea24827b67178482fd73f37c3 | 由登录api返回获得 |
+
+> **POST发送请求的json文本**
+
+```python
+{
+    "id":0,
+    "type":"article",
+    "subtype":"list",
+    "data":{
+        "user_id":"13750687010",
+    }
+}
+```
+
+> **data字段表**
+
+|    参数    | 可否为空 | 可否缺省 | 数据类型 | 字段长度 | 默认值           |            例子            |                             备注                             |
+| :--------: | :------: | :------: | :------: | :------: | ---------------- | :------------------------: | :----------------------------------------------------------: |
+|  keywords  |    √     |    √     |  string  |          |                  |            测试            | 搜索关键字，设置后将以此关键字模糊匹配title和content字段内容，模糊匹配 |
+| article_id |    √     |    √     |   int    |    10    |                  |         1565926081         |                       文章id，精确匹配                       |
+|  user_id   |    √     |    √     |  string  |    11    |                  |        13750687010         |                       用户id，精确匹配                       |
+|   title    |    √     |    √     |  string  |          |                  |          测试文章          |                      文章标题，模糊匹配                      |
+|  content   |    √     |    √     |  string  |          |                  |            这是            |                      文章内容，模糊匹配                      |
+|   order    |    √     |    √     |  string  |          | update_time DESC | title ASC,update_time DESC |     排序规则，使用SQL语句，为空则默认以更新时间进行排序      |
+|   start    |    √     |    √     |   int    |          | 0                |             0              |                  记录索引开始，默认起始为 0                  |
+|    num     |    √     |    √     |   int    |          | 50               |             10             |                   返回记录数，默认返回50条                   |
+|    mode    |          |    √     |   int    |          | 0                |             0              |      0为显示文章源格式，1为文章简介，自动返回第一行文字      |
+
+> ## 注意
+
+- 不传任何字段参数则返回所有文章
+- 如果`keywords`不为空则优先使用`keywords`，`article_id`、`title`、`content`则被忽略；
+- `keywords`用于`title`和`content`的并集查询，模糊匹配；
+- `article_id`、`user_id`、`title`、`content`可交集查询；
+- `order`中可用于排序的字段有`article_id`, `user_id`, `title`,`content`,`create_time`, `update_time`;
+- `order`排序方法有：升序`asc`、降序`desc`，大小写不区分。多条件排序时用英文半角`,`分割
+- 当实际记录数小于`num`的值时，只返回实际记录数量的记录
+
+> **Python端返回成功处理情况**
+
+```python
+{
+    "id": -1, 
+    "status": 0, 
+    "message": "successful", 
+    "data": {
+        "num": 1, 
+        "list": [
+            {"article_id": 1565926081, 
+             "user_id": "13750687010", 
+             "nickename": "FatBallFish",
+             "title": "测试文章", 
+             "content": "这是一篇测试文章", 
+             "create_time": "2019-08-16 11:28:01", 
+             "update_time": "2019-08-16 11:28:01"}
+        ]
+    }
+}
+```
+
+> **Python端返回失败处理情况**
+
+```python
+{
+    "id": -1, 
+    "status": -101, 
+    "message": "Error Token", 
+    "data": {}
+}
+```
+
+> **所用到的全局status**
+
+全局参数详情请看[全局Status表](#全局Status表)
+
+| status |
+| ------ |
+| -203   |
+| -200   |
+| -101   |
+| -100   |
+
+> **局部status表**
+
+| status | message     | 内容              |
+| :----- | ----------- | ----------------- |
+| 100    | Error Order | 排序规则错误      |
+| 101    | Error num   | num值错误，不能<1 |
 
 ## **全局Status表**
 

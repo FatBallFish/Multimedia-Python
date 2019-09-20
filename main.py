@@ -308,7 +308,7 @@ def userinfo():
             # status -100 Missing necessary args api地址中缺少token参数
             return json.dumps({"id": -1, "status": -100, "message": "Missing necessary args", "data": {}})
         # print("token:",token)
-        json_dict = dict(MySQL.GetUserInfo(token))
+        json_dict = dict(MySQL.GetUserInfo(token=token))
         return json.dumps(json_dict)
     elif request.method == "POST":
         try:
@@ -1439,12 +1439,199 @@ def admin_user():
         if subtype == "list":
             json_dict = MySQL.AdminUserList(id=id)
             return json.dumps(json_dict)
+        elif subtype == "info":
+            for key in ["phone"]:
+                if key not in data.keys():
+                    # status -3 json的value错误。
+                    return json.dumps({"id": id, "status": -3, "message": "Error data key", "data": {}})
+                phone = data["phone"]
+                json_dict = MySQL.GetUserInfo(user_id=phone,id=id)
+                return json.dumps(json_dict)
+        elif subtype == "update":
+            for key in data.keys():
+                if key not in ["phone", "name", "nickname", "email", "level"]:
+                    # status -3 Error data key data数据中必需key缺失
+                    return json.dumps(
+                        {"id": id, "status": -3, "message": "Error data key", "data": {}})
+            phone = data["phone"]
+            temp_info = {}
+            for key in data.keys():
+                if key == "phone":
+                    continue
+                temp_info[key] = data[key]
+            json_dict = MySQL.UpdataUserInfo(phone, temp_info, id=id)
+            return json.dumps(json_dict)
+        elif subtype == "delete":
+            for key in ["phone"]:
+                if key not in data.keys():
+                    # status -3 Error data key data数据中必需key缺失
+                    return json.dumps({"id": id, "status": -3, "message": "Error data key", "data": {}})
+            phone = data["phone"]
+            json_dict = MySQL.DeleteUser(phone=phone,id=id)
+            return json.dumps(json_dict)
         else:
             # status -2 json的value错误。
             return json.dumps({"id": id, "status": -2, "message": "Error JSON value", "data": {}})
     else:
         # status -2 json的value错误。
         return json.dumps({"id": id, "status": -2, "message": "Error JSON value", "data": {}})
+
+@app.route("/admin/article",methods=["POST"])
+def admin_article():
+    try:
+        token = request.args["token"]
+        print("token:", token)
+    except Exception as e:
+        print("Missing necessary args")
+        log_main.error("Missing necessary agrs")
+        # status -100 缺少必要的参数
+        return json.dumps({"id": -1, "status": -100, "message": "Missing necessary args", "data": {}})
+    token_check_result, username = MySQL.Doki2(token)
+    if token_check_result == False:
+        # status -101 token不正确
+        return json.dumps({"id": -1, "status": -101, "message": "Error token", "data": {}})
+    admin_check_result = MySQL.AdminCheck(phone=username)
+    if admin_check_result == False:
+        # status -103 用户无权操作
+        return json.dumps({"id": -1, "status": -103, "message": "No permission to operate", "data": {}})
+    # 验证身份完成，处理数据
+    data = request.json
+    print(data)
+
+    # 判断键值对是否存在
+    try:
+        keys = data.keys()
+    except Exception as e:
+        # status -1 json的key错误。此处id是因为没有进行读取，所以返回默认的-1。
+        return json.dumps({"id": -1, "status": -1, "message": "Error JSON key", "data": {}})
+    # 先获取json里id的值，若不存在，默认值为-1
+    if "id" in data.keys():
+        id = data["id"]
+    else:
+        id = -1
+
+    # 判断指定所需字段是否存在，若不存在返回status -1 json。
+    for key in ["type", "subtype", "data"]:
+        if key not in data.keys():
+            # status -1 json的key错误。
+            return json.dumps({"id": id, "status": -1, "message": "Error JSON key", "data": {}})
+    # 处理json
+    type = data["type"]
+    subtype = data["subtype"]
+    data = data["data"]
+    if type == "article":
+        if subtype == "list":
+            keywords = ""
+            article_id = 0
+            title = ""
+            content = ""
+            order = "update_time DESC"
+            start = 0
+            num = 50
+            mode = 0
+            user_id = ""
+            for key in data.keys():
+                if key == "token":
+                    continue
+                elif key == "article_id":
+                    if isinstance(data["article_id"], int):
+                        article_id = data["article_id"]
+                    elif isinstance(data["article_id"], str):
+                        if str(data["article_id"]).isdigit():
+                            article_id = int(data["article_id"])
+                    else:
+                        # status -203 Arg's value type error 键值对数据类型错误
+                        return json.dumps({"id": -1, "status": -203, "message": "Arg's value type error", "data": {}})
+                elif key == "title":
+                    if isinstance(data["title"], str):
+                        title = data["title"]
+                    else:
+                        # status -203 Arg's value type error 键值对数据类型错误
+                        return json.dumps({"id": -1, "status": -203, "message": "Arg's value type error", "data": {}})
+                elif key == "content":
+                    if isinstance(data["content"], str):
+                        content = data["content"]
+                    else:
+                        # status -203 Arg's value type error 键值对数据类型错误
+                        return json.dumps({"id": -1, "status": -203, "message": "Arg's value type error", "data": {}})
+                elif key == "keywords":
+                    if isinstance(data["keywords"], str):
+                        keywords = data["keywords"]
+                    else:
+                        # status -203 Arg's value type error 键值对数据类型错误
+                        return json.dumps({"id": -1, "status": -203, "message": "Arg's value type error", "data": {}})
+                elif key == "order":
+                    if isinstance(data["order"], str):
+                        order = data["order"]
+                    else:
+                        # status -203 Arg's value type error 键值对数据类型错误
+                        return json.dumps({"id": -1, "status": -203, "message": "Arg's value type error", "data": {}})
+                    order = str(data["order"])
+                elif key == "start":
+                    if isinstance(data["start"], int):
+                        start = data["start"]
+                    elif isinstance(data["start"], str):
+                        if str(data["start"]).isdigit():
+                            start = int(data["start"])
+                    else:
+                        # status -203 Arg's value type error 键值对数据类型错误
+                        return json.dumps({"id": -1, "status": -203, "message": "Arg's value type error", "data": {}})
+                elif key == "num":
+                    if isinstance(data["num"], int):
+                        num = data["num"]
+                    elif isinstance(data["num"], str):
+                        if str(data["num"]).isdigit():
+                            num = int(data["num"])
+                    else:
+                        # status -203 Arg's value type error 键值对数据类型错误
+                        return json.dumps({"id": -1, "status": -203, "message": "Arg's value type error", "data": {}})
+                elif key == "mode":
+                    if isinstance(data["mode"], int):
+                        mode = data["mode"]
+                    elif isinstance(data["mode"], str):
+                        if str(data["mode"]).isdigit():
+                            mode = int(data["mode"])
+                    else:
+                        # status -203 Arg's value type error 键值对数据类型错误
+                        return json.dumps({"id": -1, "status": -203, "message": "Arg's value type error", "data": {}})
+                elif key == "user_id":
+                    if isinstance(data["user_id"], str):
+                        user_id = data["user_id"]
+                    elif isinstance(data["user_id"], int):
+                        user_id = str(data["user_id"])
+                else:
+                    continue
+            json_dict = MySQL.GetArticleList(keywords=keywords, article_id=article_id, user_id=user_id, title=title,
+                                             content=content, order=order, start=start, num=num, mode=mode)
+            return json.dumps(json_dict)
+        if subtype == "add":
+            for key in ["title", "content"]:
+                if key not in data.keys():
+                    # status -3 json的value错误。
+                    return json.dumps({"id": id, "status": -3, "message": "Error data key", "data": {}})
+            title = data["title"]
+            content = data["content"]
+            json_dict = MySQL.AddArticle(user_id=username, title=title, content=content, id=id)
+            return json.dumps(json_dict)
+        elif subtype == "update":
+            for key in ["article_id", "content"]:
+                if key not in data.keys():
+                    # status -3 json的value错误。
+                    return json.dumps({"id": id, "status": -3, "message": "Error data key", "data": {}})
+            article_id = data["article_id"]
+            content = data["content"]
+            json_dict = MySQL.UpdateArticle(user_id=username, article_id=article_id, content=content, id=id)
+            return json.dumps(json_dict)
+        elif subtype == "delete":
+            for key in ["article_id"]:
+                if key not in data.keys():
+                    # status -3 json的value错误。
+                    return json.dumps({"id": id, "status": -3, "message": "Error data key", "data": {}})
+            article_id = data["article_id"]
+            json_dict = MySQL.DeleteArticle(user_id=username, article_id=article_id, id=id)
+            return json.dumps(json_dict)
+
+
 if __name__ == '__main__':
     Initialize(sys.argv[1  :])
     # thread_token = MyThread(1, "AutoRemoveExpireToken", 1)

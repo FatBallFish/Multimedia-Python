@@ -172,12 +172,46 @@ headers = {'content-type': "application/json"}
 # # response = requests.post(url="https://dmt.lcworkroom.cn/api/active?token={}".format(token),data=json.dumps(data),headers=headers)
 # response = requests.post(url="http://127.0.0.1:8765/user/password",data=json.dumps(data),headers=headers)
 
-# 获取用户列表（管理员）
+# # 获取用户列表（管理员）
+# data={"id":0,
+#       "type":"user",
+#       "subtype":"list",
+#       "data":{}}
+# token = "99c9150238fa21051f558ceccad55b8a"
+# # response = requests.post(url="https://dmt.lcworkroom.cn/api/admin/user?token={}".format(token),data=json.dumps(data),headers=headers)
+
+# # 获取用户信息（管理员）
+# data={"id":0,
+#       "type":"user",
+#       "subtype":"info",
+#       "data":{"phone":"13566284913"}}
+# token = "99c9150238fa21051f558ceccad55b8a"
+# # response = requests.post(url="https://dmt.lcworkroom.cn/api/admin/user?token={}".format(token),data=json.dumps(data),headers=headers)
+# response = requests.post(url="http://127.0.0.1:8765/admin/user?token={}".format(token),data=json.dumps(data),headers=headers)
+
+# # 更新用户信息（管理员）
+# data={"id":0,
+#       "type":"user",
+#       "subtype":"update",
+#       "data":{"phone":"13750687010","nickname":"FatBallFish","email":"893721708@qq.com"}}
+# token = "99c9150238fa21051f558ceccad55b8a"
+# # response = requests.post(url="https://dmt.lcworkroom.cn/api/admin/user?token={}".format(token),data=json.dumps(data),headers=headers)
+# response = requests.post(url="http://127.0.0.1:8765/admin/user?token={}".format(token),data=json.dumps(data),headers=headers)
+
+# # 删除用户（管理员）
+# data={"id":0,
+#       "type":"user",
+#       "subtype":"delete",
+#       "data":{"phone":"19857160634"}}
+# token = "99c9150238fa21051f558ceccad55b8a"
+# # response = requests.post(url="https://dmt.lcworkroom.cn/api/admin/user?token={}".format(token),data=json.dumps(data),headers=headers)
+# response = requests.post(url="http://127.0.0.1:8765/admin/user?token={}".format(token),data=json.dumps(data),headers=headers)
+# 获取文章列表（管理员）
 data={"id":0,
-      "type":"user",
+      "type":"article",
       "subtype":"list",
-      "data":{}}
+      "data":{"user_id":"13750687010"}}
 token = "99c9150238fa21051f558ceccad55b8a"
 # response = requests.post(url="https://dmt.lcworkroom.cn/api/admin/user?token={}".format(token),data=json.dumps(data),headers=headers)
-response = requests.post(url="http://127.0.0.1:8765/admin/user?token={}".format(token),data=json.dumps(data),headers=headers)
+response = requests.post(url="http://127.0.0.1:8765/admin/article?token={}".format(token),data=json.dumps(data),headers=headers)
 print(response.text)
