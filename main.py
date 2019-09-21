@@ -1806,7 +1806,9 @@ def admin_comment():
         # status -2 json的value错误。
         return json.dumps({"id": id, "status": -2, "message": "Error JSON value", "data": {}})
 
-
+@app.route("/admin/active",methods=["POST"])
+def admin_active():
+    pass
 if __name__ == '__main__':
     Initialize(sys.argv[1  :])
     # thread_token = MyThread(1, "AutoRemoveExpireToken", 1)

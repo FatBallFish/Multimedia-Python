@@ -1615,8 +1615,8 @@ active_id、title、content可交集查询；
         # status 0 successful
         return {"id": id, "status": 0, "message": "successful", "data": {"num": 0, "list": []}}
     active_list = []
-    active_dict = {}
     for row in rows:
+        active_dict = {}
         active_dict["active_id"] = row[0]
         active_dict["user_id"] = row[1]
         active_dict["nickname"] = GetUserNickname2(row[1])
