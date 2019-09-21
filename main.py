@@ -1336,10 +1336,6 @@ def get_active():
 
 @app.route("/get/active/member",methods=["GET","POST"])
 def get_active_member():
-    active_id = 0
-    order = "join_time ASC"
-    start = 0
-    num = 50
     try:
         token = request.args.get("token")
     except Exception as e:
@@ -1357,6 +1353,10 @@ def get_active_member():
         arg_dict = dict(request.args)
     else:
         arg_dict = request.json
+    active_id = 0
+    order = "join_time ASC"
+    start = 0
+    num = 50
     for key in arg_dict.keys():
         if key == "token":
             continue
@@ -1808,7 +1808,238 @@ def admin_comment():
 
 @app.route("/admin/active",methods=["POST"])
 def admin_active():
-    pass
+    try:
+        token = request.args["token"]
+        print("token:", token)
+    except Exception as e:
+        print("Missing necessary args")
+        log_main.error("Missing necessary agrs")
+        # status -100 缺少必要的参数
+        return json.dumps({"id": -1, "status": -100, "message": "Missing necessary args", "data": {}})
+    token_check_result, username = MySQL.Doki2(token)
+    if token_check_result == False:
+        # status -101 token不正确
+        return json.dumps({"id": -1, "status": -101, "message": "Error token", "data": {}})
+    admin_check_result = MySQL.AdminCheck(phone=username)
+    if admin_check_result == False:
+        # status -103 用户无权操作
+        return json.dumps({"id": -1, "status": -103, "message": "No permission to operate", "data": {}})
+    # 验证身份完成，处理数据
+    data = request.json
+    print(data)
+
+    # 判断键值对是否存在
+    try:
+        keys = data.keys()
+    except Exception as e:
+        # status -1 json的key错误。此处id是因为没有进行读取，所以返回默认的-1。
+        return json.dumps({"id": -1, "status": -1, "message": "Error JSON key", "data": {}})
+    # 先获取json里id的值，若不存在，默认值为-1
+    if "id" in data.keys():
+        id = data["id"]
+    else:
+        id = -1
+
+    # 判断指定所需字段是否存在，若不存在返回status -1 json。
+    for key in ["type", "subtype", "data"]:
+        if key not in data.keys():
+            # status -1 json的key错误。
+            return json.dumps({"id": id, "status": -1, "message": "Error JSON key", "data": {}})
+    # 处理json
+    type = data["type"]
+    subtype = data["subtype"]
+    data = data["data"]
+    if type == "active":
+        if subtype == "list":
+            keywords = ""
+            active_id = 0
+            user_id = ""
+            title = ""
+            content = ""
+            order = "update_time DESC"
+            start = 0
+            num = 50
+            mode = 0
+            for key in data.keys():
+                if key == "token":
+                    continue
+                elif key == "active_id":
+                    if isinstance(data["active_id"], int):
+                        active_id = data["active_id"]
+                    elif isinstance(data["active_id"], str):
+                        if str(data["active_id"]).isdigit():
+                            active_id = int(data["active_id"])
+                    else:
+                        # status -203 Arg's value type error 键值对数据类型错误
+                        return json.dumps({"id": -1, "status": -203, "message": "Arg's value type error", "data": {}})
+                elif key == "user_id":
+                    if isinstance(data["user_id"], int):
+                        user_id = str(data["user_id"])
+                    elif isinstance(data["user_id"], str):
+                        user_id = data["user_id"]
+                    else:
+                        # status -203 Arg's value type error 键值对数据类型错误
+                        return json.dumps({"id": -1, "status": -203, "message": "Arg's value type error", "data": {}})
+                elif key == "title":
+                    if isinstance(data["title"], str):
+                        title = data["title"]
+                    else:
+                        # status -203 Arg's value type error 键值对数据类型错误
+                        return json.dumps({"id": -1, "status": -203, "message": "Arg's value type error", "data": {}})
+                elif key == "content":
+                    if isinstance(data["content"], str):
+                        content = data["content"]
+                    else:
+                        # status -203 Arg's value type error 键值对数据类型错误
+                        return json.dumps({"id": -1, "status": -203, "message": "Arg's value type error", "data": {}})
+                elif key == "keywords":
+                    if isinstance(data["keywords"], str):
+                        keywords = data["keywords"]
+                    else:
+                        # status -203 Arg's value type error 键值对数据类型错误
+                        return json.dumps({"id": -1, "status": -203, "message": "Arg's value type error", "data": {}})
+                elif key == "order":
+                    if isinstance(data["order"], str):
+                        order = data["order"]
+                    else:
+                        # status -203 Arg's value type error 键值对数据类型错误
+                        return json.dumps({"id": -1, "status": -203, "message": "Arg's value type error", "data": {}})
+                    order = str(data["order"])
+                elif key == "start":
+                    if isinstance(data["start"], int):
+                        start = data["start"]
+                    elif isinstance(data["start"], str):
+                        if str(data["start"]).isdigit():
+                            start = int(data["start"])
+                    else:
+                        # status -203 Arg's value type error 键值对数据类型错误
+                        return json.dumps({"id": -1, "status": -203, "message": "Arg's value type error", "data": {}})
+                elif key == "num":
+                    if isinstance(data["num"], int):
+                        num = data["num"]
+                    elif isinstance(data["num"], str):
+                        if str(data["num"]).isdigit():
+                            num = int(data["num"])
+                    else:
+                        # status -203 Arg's value type error 键值对数据类型错误
+                        return json.dumps({"id": -1, "status": -203, "message": "Arg's value type error", "data": {}})
+                elif key == "mode":
+                    if isinstance(data["mode"], int):
+                        mode = data["mode"]
+                    elif isinstance(data["mode"], str):
+                        if str(data["mode"]).isdigit():
+                            mode = int(data["mode"])
+                    else:
+                        # status -203 Arg's value type error 键值对数据类型错误
+                        return json.dumps({"id": -1, "status": -203, "message": "Arg's value type error", "data": {}})
+                else:
+                    continue
+            json_dict = MySQL.GetActiveList(keywords=keywords, active_id=active_id, user_id=user_id, title=title,
+                                            content=content,
+                                            order=order, start=start, num=num, mode=mode)
+            return json.dumps(json_dict)
+        elif subtype == "add":
+            for key in ["user_id","title", "content"]:
+                if key not in data.keys():
+                    # status -3 json的value错误。
+                    return json.dumps({"id": id, "status": -3, "message": "Error data key", "data": {}})
+            user_id = str(data["user_id"])
+            title = str(data["title"])
+            content = str(data["content"])
+            start_time = ""
+            end_time = ""
+            if "start_time" in data.keys():
+                start_time = data["start_time"]
+            if "end_time" in data.keys():
+                end_time = data["end_time"]
+            json_dict = MySQL.AddActive(user_id=user_id, title=title, content=content, start_time=start_time,
+                                        end_time=end_time, id=id)
+            return json.dumps(json_dict)
+        elif subtype == "update":
+            for key in ["user_id","active_id", "title", "content"]:
+                if key not in data.keys():
+                    # status -3 json的value错误。
+                    return json.dumps({"id": id, "status": -3, "message": "Error data key", "data": {}})
+            user_id = data["user_id"]
+            active_id = data["active_id"]
+            title = data["title"]
+            content = data["content"]
+            start_time = ""
+            end_time = ""
+            if "start_time" in data.keys():
+                start_time = data["start_time"]
+            if "end_time" in data.keys():
+                end_time = data["end_time"]
+            json_dict = MySQL.UpateActive(active_id=active_id, user_id=user_id, title=title, content=content,
+                                          start_time=start_time, end_time=end_time, id=id)
+            return json.dumps(json_dict)
+        elif subtype == "delete":
+            for key in ["user_id","active_id"]:
+                if key not in data.keys():
+                    # status -3 json的value错误。
+                    return json.dumps({"id": id, "status": -3, "message": "Error data key", "data": {}})
+            user_id = data["user_id"]
+            active_id = data["active_id"]
+            json_dict = MySQL.DeleteActive(user_id=user_id, active_id=active_id, id=id)
+            return json.dumps(json_dict)
+        elif subtype == "join":
+            for key in ["user_id","active_id"]:
+                active_id = data["active_id"]
+            user_id = data["user_id"]
+            json_dict = MySQL.JoinActive(active_id=active_id, user_id=user_id, id=id)
+            return json.dumps(json_dict)
+        elif subtype == "exit":
+            for key in ["user_id","active_id"]:
+                user_id = data["user_id"]
+                active_id = data["active_id"]
+            json_dict = MySQL.ExitActive(active_id=active_id, user_id=user_id, id=id)
+            return json.dumps(json_dict)
+        elif subtype == "member":
+            active_id = 0
+            order = "join_time ASC"
+            start = 0
+            num = 50
+            for key in data.keys():
+                if key == "token":
+                    continue
+                elif key == "active_id":
+                    if isinstance(data["active_id"], int):
+                        active_id = data["active_id"]
+                    elif isinstance(data["active_id"], str):
+                        if str(data["active_id"]).isdigit():
+                            active_id = int(data["active_id"])
+                    else:
+                        # status -203 Arg's value type error 键值对数据类型错误
+                        return json.dumps({"id": -1, "status": -203, "message": "Arg's value type error", "data": {}})
+                elif key == "start":
+                    if isinstance(data["start"], int):
+                        start = data["start"]
+                    elif isinstance(data["start"], str):
+                        if str(data["start"]).isdigit():
+                            start = int(data["start"])
+                    else:
+                        # status -203 Arg's value type error 键值对数据类型错误
+                        return json.dumps({"id": -1, "status": -203, "message": "Arg's value type error", "data": {}})
+                elif key == "num":
+                    if isinstance(data["num"], int):
+                        num = data["num"]
+                    elif isinstance(data["num"], str):
+                        if str(data["num"]).isdigit():
+                            num = int(data["num"])
+                    else:
+                        # status -203 Arg's value type error 键值对数据类型错误
+                        return json.dumps({"id": -1, "status": -203, "message": "Arg's value type error", "data": {}})
+                else:
+                    continue
+            json_dict = MySQL.GetActiveMember(active_id=active_id, order=order, start=start, num=num)
+            return json.dumps(json_dict)
+        else:
+            # status -2 json的value错误。
+            return json.dumps({"id": id, "status": -2, "message": "Error JSON value", "data": {}})
+    else:
+        # status -2 json的value错误。
+        return json.dumps({"id": id, "status": -2, "message": "Error JSON value", "data": {}})
+
 if __name__ == '__main__':
     Initialize(sys.argv[1  :])
     # thread_token = MyThread(1, "AutoRemoveExpireToken", 1)

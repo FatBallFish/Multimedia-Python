@@ -270,12 +270,97 @@ headers = {'content-type': "application/json"}
 # # response = requests.post(url="https://dmt.lcworkroom.cn/api/admin/comment?token={}".format(token),data=json.dumps(data),headers=headers)
 # response = requests.post(url="http://127.0.0.1:8765/admin/comment?token={}".format(token),data=json.dumps(data),headers=headers)
 
-# 删除评论（管理员）
-data={"id":0,
-      "type":"comment",
-      "subtype":"delete",
-      "data":{"user_id":"13750687010","comment_id":"f1570b37d305c0b330d2e72fd04fd487"}}
+# # 删除评论（管理员）
+# data={"id":0,
+#       "type":"comment",
+#       "subtype":"delete",
+#       "data":{"user_id":"13750687010","comment_id":"f1570b37d305c0b330d2e72fd04fd487"}}
+# token = "99c9150238fa21051f558ceccad55b8a"
+# # response = requests.post(url="https://dmt.lcworkroom.cn/api/admin/comment?token={}".format(token),data=json.dumps(data),headers=headers)
+# response = requests.post(url="http://127.0.0.1:8765/admin/comment?token={}".format(token),data=json.dumps(data),headers=headers)
+
+# # 获取活动列表（管理员）
+# data={"id":0,
+#       "type":"active",
+#       "subtype":"list",
+#       "data":{"user_id":"13750687010"}}
+# token = "99c9150238fa21051f558ceccad55b8a"
+# # response = requests.post(url="https://dmt.lcworkroom.cn/api/admin/active?token={}".format(token),data=json.dumps(data),headers=headers)
+# response = requests.post(url="http://127.0.0.1:8765/admin/active?token={}".format(token),data=json.dumps(data),headers=headers)
+
+# # 添加活动（管理员）
+# data={
+#     "id":1234,
+#     "type":"active",
+#     "subtype":"add",
+#     "data":{
+#         "user_id":"13750687010",
+#         "title":"测试增加活动",
+#         "content":"测试增加活动，召集校友来此一聚",
+#         "start_time":"2019-08-24 00:00:00",
+#         "end_time":"2019-8-25 0:0:0"
+#     }
+# }
+# token = "99c9150238fa21051f558ceccad55b8a"
+# # response = requests.post(url="https://dmt.lcworkroom.cn/api/admin/active?token={}".format(token),data=json.dumps(data),headers=headers)
+# response = requests.post(url="http://127.0.0.1:8765/admin/active?token={}".format(token),data=json.dumps(data),headers=headers)
+
+# # 更新活动（管理员）
+# data={
+#     "id":1234,
+#     "type":"active",
+#     "subtype":"update",
+#     "data":{
+#         "user_id":"13750687010",
+#         "active_id":78251505,
+#         "title":"测试更新活动2",
+#         "content":"测试更新活动2，召集校友来此一聚",
+#         "start_time":"2019-08-24 00:00:00",
+#         "end_time":"2019-8-25 0:0:0"
+#     }
+# } ##         "active_id":78251505,
+# token = "99c9150238fa21051f558ceccad55b8a"
+# # response = requests.post(url="https://dmt.lcworkroom.cn/api/admin/active?token={}".format(token),data=json.dumps(data),headers=headers)
+# response = requests.post(url="http://127.0.0.1:8765/admin/active?token={}".format(token),data=json.dumps(data),headers=headers)
+
+# # 加入/退出活动（管理员）
+# data={
+#     "id":1234,
+#     "type":"active",
+#     "subtype":"join",  ## exit 退出活动
+#     "data":{
+#         "user_id":"13750687010",
+#         "active_id":59795779,
+#     }
+# }
+# token = "99c9150238fa21051f558ceccad55b8a"
+# # response = requests.post(url="https://dmt.lcworkroom.cn/api/admin/active?token={}".format(token),data=json.dumps(data),headers=headers)
+# response = requests.post(url="http://127.0.0.1:8765/admin/active?token={}".format(token),data=json.dumps(data),headers=headers)
+
+# # 删除活动（管理员）
+# data={
+#     "id":1234,
+#     "type":"active",
+#     "subtype":"delete",
+#     "data":{
+#         "user_id":"13750687010",
+#         "active_id":78251505,
+#     }
+# }
+# token = "99c9150238fa21051f558ceccad55b8a"
+# # response = requests.post(url="https://dmt.lcworkroom.cn/api/admin/active?token={}".format(token),data=json.dumps(data),headers=headers)
+# response = requests.post(url="http://127.0.0.1:8765/admin/active?token={}".format(token),data=json.dumps(data),headers=headers)
+
+# 获取活动参与成员名单（管理员）
+data={
+    "id":1234,
+    "type":"active",
+    "subtype":"member",
+    "data":{
+        "active_id":78554587,
+    }
+}
 token = "99c9150238fa21051f558ceccad55b8a"
-# response = requests.post(url="https://dmt.lcworkroom.cn/api/admin/comment?token={}".format(token),data=json.dumps(data),headers=headers)
-response = requests.post(url="http://127.0.0.1:8765/admin/comment?token={}".format(token),data=json.dumps(data),headers=headers)
+# response = requests.post(url="https://dmt.lcworkroom.cn/api/admin/active?token={}".format(token),data=json.dumps(data),headers=headers)
+response = requests.post(url="http://127.0.0.1:8765/admin/active?token={}".format(token),data=json.dumps(data),headers=headers)
 print(response.text)
