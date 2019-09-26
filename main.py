@@ -124,7 +124,6 @@ class MyThread (threading.Thread):
             Redis.Auto_del_hash()
             # lock.release()
 
-
 @app.route("/ping")
 def ping():
     return "<h1>Pong</h1>"
@@ -476,6 +475,7 @@ def portrait():
             if "type" in data.keys():
                 img_type = data["type"]
             img_file = base64.b64decode(img_base64)
+
             try:
                 Cos.bytes_upload(img_file,"portrait/{}".format(username))
                 print("Add portrait for id:{}".format(username))
@@ -485,6 +485,9 @@ def portrait():
                 print(e)
                 log_main.error("Failed to add portrait for id:{}".format(username))
                 log_main.error(e)
+                # status -500 COS upload Error
+                return {"id":id,"status":-500,"message":"COS upload Error","data":{}}
+
 
 
             # with open("./{}_{}.{}".format(id,name,type),"wb") as f:

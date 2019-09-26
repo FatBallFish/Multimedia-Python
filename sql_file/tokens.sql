@@ -1,7 +1,7 @@
 /*
  Navicat MySQL Data Transfer
 
- Source Server         : dmt
+ Source Server         : Tencent
  Source Server Type    : MySQL
  Source Server Version : 50628
  Source Host           : 5780e03864e11.sh.cdb.myqcloud.com:4201
@@ -11,7 +11,7 @@
  Target Server Version : 50628
  File Encoding         : 65001
 
- Date: 14/09/2019 01:57:06
+ Date: 23/09/2019 17:31:23
 */
 
 SET NAMES utf8mb4;

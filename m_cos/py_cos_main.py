@@ -124,10 +124,11 @@ def online_check()->bool:
     os.makedirs(os.path.join(Main_filepath, "data", "local", "portrait"), exist_ok=True)
     os.makedirs(os.path.join(Main_filepath, "data", "local", "article"), exist_ok=True)
     response = client.list_buckets()
+    # print(response)
     buckets = response["Buckets"]["Bucket"]
-    for bucket in buckets:
-        bucket_name = bucket["Name"]
-        if bucket_name == "multimedia-1251848017":
+    for j_bucket in buckets:
+        bucket_name = j_bucket["Name"]
+        if bucket_name == bucket:
             server_mode = True
             cf.set("COS", "server_mode", "1")
             cf.write(open(os.path.join(Main_filepath,"config.ini"), "w"))

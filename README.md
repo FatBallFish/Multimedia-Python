@@ -4265,6 +4265,7 @@ token只能传在url中
 | -203 |       Arg's value type error       |         键值对数据类型错误          | POST      |
 | -204 |         Arg's value error          |           键值对数据错误            | POST      |
 | -404 |           Unknown Error            |           未知的Redis错误           | POST      |
+| -500 |          COS upload Error          |           COS储存上传失败           | POST      |
 
 ------
 
