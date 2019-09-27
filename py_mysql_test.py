@@ -6,9 +6,20 @@ import MD5,time
 log_mysql = logging.getLogger("MySql")
 
 # 连接mysql数据库，host等参数名字不可随意更改
-conn = pymysql.connect(host="5780e03864e11.sh.cdb.myqcloud.com", port=4201, user="root", passwd="wlc570Q0", db="multimedia",charset="utf8")
+# conn = pymysql.connect(host="5780e03864e11.sh.cdb.myqcloud.com", port=4201, user="root", passwd="wlc570Q0", db="multimedia",charset="utf8")
+conn = pymysql.connect(host="localhost", port=3306, user="root", passwd="", db="multimedia",charset="utf8")
 # conn = pymysql.connect(host="134.175.87.30", port=3306, user="root", passwd="", db="test",charset="utf8")
 print(conn)
+def Init():
+    sql = ""
+    with open("./sql_file/multimedia_local.sql","rb") as f:
+        sql = f.read()
+        sql = bytes.decode(sql,"utf8")
+    print("sql:",sql)
+    cur = conn.cursor()
+    cur.execute(sql)
+    conn.commit()
+
 
 def CheckCommentIfExist(comment_id:str)->bool:
     """
@@ -94,7 +105,8 @@ def UpdateComment(user_id:str,comment_id:str,content:str,id:int=-1)->dict:
         return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
 
 if __name__ == '__main__':
-    user_id = "13750687010"
-    comment_id = "76bd7b76fcd0b23f3d171f39b416d936"
-    content = "这是一条更新过的评论"
-    print(UpdateComment(user_id=user_id,comment_id=comment_id,content=content))
+    Init()
+    # user_id = "13750687010"
+    # comment_id = "76bd7b76fcd0b23f3d171f39b416d936"
+    # content = "这是一条更新过的评论"
+    # print(UpdateComment(user_id=user_id,comment_id=comment_id,content=content))
